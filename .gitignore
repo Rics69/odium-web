@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Build and test output
+build/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Environment (keep the example)
+.env*
+!.env.example
+
+# Uploaded images in local development
+storage/
+
+# Tools and OS
+.vercel/
+.claude/settings.local.json
+.DS_Store
+npm-debug.log*
