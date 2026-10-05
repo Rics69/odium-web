@@ -1,0 +1,30 @@
+# Services for local development: PostgreSQL and Mailpit, which catches all outgoing email.
+# Start with `npm run services:up`, stop with `npm run services:down`.
+name: odium-dev
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: odium
+      POSTGRES_PASSWORD: odium
+      POSTGRES_DB: odium
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # Postgres 18+ keeps its data in a versioned folder under /var/lib/postgresql.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odium -d odium"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  mailpit:
+    image: axllent/mailpit:v1.31.4
+    ports:
+      - "127.0.0.1:1025:1025" # SMTP
+      - "127.0.0.1:8025:8025" # web inbox
+
+volumes:
+  postgres-data:

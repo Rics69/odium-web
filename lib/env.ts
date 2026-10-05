@@ -7,6 +7,7 @@ const envSchema = z.object({
     .default("development"),
   // Public address of the site: absolute links in metadata and emails.
   SITE_URL: z.url(),
+  DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
 });
 
 const parsed = envSchema.safeParse(process.env);

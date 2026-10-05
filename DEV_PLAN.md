@@ -100,7 +100,11 @@
   - Включены `typedRoutes` (ссылка на несуществующую страницу — ошибка типов) и `noUncheckedIndexedAccess`. `npm run typecheck` сначала генерирует типы маршрутов (`next typegen`), потом запускает `tsc`.
   - Переменные окружения пока одна — `SITE_URL`; каждый следующий шаг добавляет свои. Без неё падают и запуск сервера (через `instrumentation.ts`), и сборка.
   - Главная — временная заглушка. Пустые папки из ТЗ держатся в git через `.gitkeep`. `npm run build` тоже проходит.
-- [ ] **0.3 База для разработки.** `compose.dev.yml`: PostgreSQL и Mailpit. Drizzle ORM и drizzle-kit, подключение в `lib/db`, первая миграция включает `pg_trgm`. Команды `db:generate`, `db:migrate`, `db:studio`. `/api/health` проверяет связь с базой.
+- [x] **0.3 База для разработки.** `compose.dev.yml`: PostgreSQL и Mailpit. Drizzle ORM и drizzle-kit, подключение в `lib/db`, первая миграция включает `pg_trgm`. Команды `db:generate`, `db:migrate`, `db:studio`. `/api/health` проверяет связь с базой.
+  - PostgreSQL 18.6 (19-й в Docker Hub пока нет), Mailpit 1.31.4. Порты открыты только на этом компьютере: база — 5432, почта — SMTP 1025 и ящик http://localhost:8025. `npm run services:up` / `services:down`.
+  - Drizzle ORM 0.45 и драйвер `pg` (Drizzle 1.0 пока в бете). В коде поля называются в camelCase, в базе — в snake_case, как в ТЗ (`casing: "snake_case"`). drizzle-kit читает `.env.local` так же, как Next.js.
+  - Миграция `0000_enable_pg_trgm` применена. `DATABASE_URL` добавлен в проверку переменных окружения.
+  - `/api/health`: с базой — 200 `{"status":"ok"}`; с остановленной базой — 503 за 0,1 с, без зависания (у подключения тайм-аут 5 с); после запуска базы снова 200.
 - [ ] **0.4 Тесты и CI.** Vitest для сервисного слоя на настоящем Postgres: отдельная тестовая база, миграции перед прогоном, очистка между тестами (голоса и лимиты без настоящей базы не проверить). Playwright с первым тестом «главная открывается». GitHub Actions на каждый push: линтер, типы, юнит-тесты, e2e.
 
 ## Фаза 1. Основа (этап 1 ТЗ)
