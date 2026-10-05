@@ -17,6 +17,7 @@ blob-report/
 # Environment (keep the example)
 .env*
 !.env.example
+!.env.test
 
 # Uploaded images in local development
 storage/
