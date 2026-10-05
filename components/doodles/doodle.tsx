@@ -1,7 +1,12 @@
 "use client";
 
 import { useInView } from "motion/react";
-import { useLayoutEffect, useRef, type CSSProperties } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+  type RefObject,
+} from "react";
 import { cn } from "@/lib/cn";
 
 type Shape = {
@@ -81,6 +86,30 @@ function screenLength(path: SVGPathElement) {
   return Math.ceil(length) + 1;
 }
 
+/**
+ * Prepares the paths inside an SVG for the drawing animation in
+ * app/globals.css (.doodle): measures each path on screen, again on resize.
+ */
+export function useDoodleDrawing(
+  svgRef: RefObject<SVGSVGElement | null>,
+  enabled: boolean,
+) {
+  useLayoutEffect(() => {
+    const svg = svgRef.current;
+    if (!enabled || !svg) return;
+    const measure = () => {
+      svg.querySelectorAll("path").forEach((path) => {
+        path.style.setProperty("--doodle-length", `${screenLength(path)}px`);
+      });
+      svg.dataset.measured = "";
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, [svgRef, enabled]);
+}
+
 export function Doodle({
   name,
   draw = "static",
@@ -92,20 +121,7 @@ export function Doodle({
   const inView = useInView(svgRef, { once: true, amount: 0.5 });
   const animated = draw !== "static";
 
-  useLayoutEffect(() => {
-    const svg = svgRef.current;
-    if (!animated || !svg) return;
-    const measure = () => {
-      svg.querySelectorAll("path").forEach((path) => {
-        path.style.setProperty("--doodle-length", `${screenLength(path)}px`);
-      });
-      svg.dataset.measured = "";
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(svg);
-    return () => observer.disconnect();
-  }, [animated]);
+  useDoodleDrawing(svgRef, animated);
 
   return (
     <svg
