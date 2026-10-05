@@ -16,60 +16,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TextLink } from "@/components/ui/text-link";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
-import { climateCrisis, delaGothic, unbounded } from "./fonts";
 
-type Accent = "ember" | "blue" | "olive";
-type Face = "unbounded" | "dela" | "climate";
 type MotionMode = "on" | "reduce";
 
-const accents: { value: Accent; label: string; swatch: string }[] = [
-  { value: "ember", label: "Оранжево-красный", swatch: "#c93d15" },
-  { value: "blue", label: "Электрический синий", swatch: "#2d46e6" },
-  { value: "olive", label: "Оливковый", swatch: "#56652a" },
-];
-
-const faces: { value: Face; label: string; fontFamily: string }[] = [
-  {
-    value: "unbounded",
-    label: "Unbounded",
-    fontFamily: unbounded.style.fontFamily,
-  },
-  {
-    value: "dela",
-    label: "Dela Gothic One",
-    fontFamily: delaGothic.style.fontFamily,
-  },
-  {
-    value: "climate",
-    label: "Climate Crisis",
-    fontFamily: climateCrisis.style.fontFamily,
-  },
-];
-
 export function Showcase() {
-  const [accent, setAccent] = useState<Accent>("ember");
-  const [face, setFace] = useState<Face>("unbounded");
   const [motionMode, setMotionMode] = useState<MotionMode>("on");
-  const fontFamily = faces.find((f) => f.value === face)?.fontFamily ?? "";
 
-  // The pickers write to <html>, so portals (dialogs, toasts) follow them too.
+  // Written to <html>, so portals (dialogs, toasts) follow the switch too.
   useEffect(() => {
     const root = document.documentElement;
-    if (accent === "ember") delete root.dataset.accent;
-    else root.dataset.accent = accent;
     if (motionMode === "reduce") root.dataset.motion = "reduce";
     else delete root.dataset.motion;
-    root.style.setProperty("--font-display-face", fontFamily);
-  }, [accent, motionMode, fontFamily]);
-
-  useEffect(() => {
-    const root = document.documentElement;
     return () => {
-      delete root.dataset.accent;
       delete root.dataset.motion;
-      root.style.removeProperty("--font-display-face");
     };
-  }, []);
+  }, [motionMode]);
 
   return (
     <MotionConfig reducedMotion={motionMode === "reduce" ? "always" : "user"}>
@@ -78,34 +39,6 @@ export function Showcase() {
           <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 md:px-8 lg:flex-row lg:items-center lg:justify-between">
             <p className="font-display text-h4">Витрина Odium</p>
             <div className="flex flex-wrap gap-4">
-              <SegmentedControl
-                label="Акцентный цвет"
-                value={accent}
-                onChange={setAccent}
-                options={accents.map((a) => ({
-                  value: a.value,
-                  label: (
-                    <>
-                      <span
-                        className="size-3 rounded-full"
-                        style={{ backgroundColor: a.swatch }}
-                      />
-                      <span className="hidden md:inline">{a.label}</span>
-                    </>
-                  ),
-                }))}
-              />
-              <SegmentedControl
-                label="Акцидентный шрифт"
-                value={face}
-                onChange={setFace}
-                options={faces.map((f) => ({
-                  value: f.value,
-                  label: (
-                    <span style={{ fontFamily: f.fontFamily }}>{f.label}</span>
-                  ),
-                }))}
-              />
               <SegmentedControl
                 label="Анимации"
                 value={motionMode}
@@ -120,8 +53,8 @@ export function Showcase() {
         </header>
 
         <main className="mx-auto flex max-w-6xl flex-col gap-24 px-4 pt-16 md:px-8">
-          <TypeSection face={face} />
-          <PaletteSection accent={accent} />
+          <TypeSection />
+          <PaletteSection />
           <DoodleSection />
           <ButtonSection />
           <LinkSection />
@@ -160,7 +93,7 @@ function Section({
   );
 }
 
-function TypeSection({ face }: { face: Face }) {
+function TypeSection() {
   return (
     <section className="flex flex-col gap-12">
       <div className="relative">
@@ -180,11 +113,6 @@ function TypeSection({ face }: { face: Face }) {
       <p className="font-display text-display-sm">
         Делаем игры, которые хочется трогать
       </p>
-      {face === "climate" && (
-        <p className="font-display text-h1 transition-[font-variation-settings] duration-1000 ease-out [font-variation-settings:'YEAR'_1979] hover:[font-variation-settings:'YEAR'_2050]">
-          Наведи — буквы тают
-        </p>
-      )}
       <div className="grid gap-8 md:grid-cols-2">
         <div className="flex flex-col gap-4">
           <p className="font-display text-h1">Заголовок H1</p>
@@ -268,11 +196,10 @@ function contrast(a: string, b: string) {
   return ((light ?? 0) + 0.05) / ((dark ?? 0) + 0.05);
 }
 
-function PaletteSection({ accent }: { accent: Accent }) {
+function PaletteSection() {
   const [values, setValues] = useState<Record<string, string>>({});
 
-  // Read on the next frame: child effects run before the parent's, which is
-  // where the accent picker updates <html>.
+  // Read from the stylesheet, so the numbers always match the real tokens.
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const styles = getComputedStyle(document.documentElement);
@@ -286,7 +213,7 @@ function PaletteSection({ accent }: { accent: Accent }) {
       );
     });
     return () => cancelAnimationFrame(frame);
-  }, [accent]);
+  }, []);
 
   const paper = values.paper ?? "#f7f3eb";
 

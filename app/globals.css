@@ -7,20 +7,10 @@
  * except ink-3, which is for decoration and placeholders only.
  */
 
+/* The accent: electric blue, chosen in step 1.1 (05.10.2026). */
 :root {
-  /* Accent candidates for step 1.1: the chosen one stays, the others go. */
-  --accent: #c93d15;
-  --accent-deep: #a8330f; /* hover, and accent text on accent tints */
-}
-
-:root[data-accent="blue"] {
   --accent: #2d46e6;
-  --accent-deep: #2236c0;
-}
-
-:root[data-accent="olive"] {
-  --accent: #56652a;
-  --accent-deep: #45521f;
+  --accent-deep: #2236c0; /* hover, and accent text on accent tints */
 }
 
 @theme {
@@ -129,7 +119,7 @@
   }
 }
 
-/* Values that change at runtime (accent picker, font picker on /dev/ui). */
+/* Theme values that point at runtime variables (the accent, next/font faces). */
 @theme inline {
   --color-accent: var(--accent);
   --color-accent-deep: var(--accent-deep);

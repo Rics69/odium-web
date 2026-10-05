@@ -6,7 +6,7 @@ export const inter = Inter({
   variable: "--font-inter",
 });
 
-// Display font for the logo and big headings. Unbounded until the choice in step 1.1.
+// Display font for the logo and big headings, chosen in step 1.1.
 export const displayFace = Unbounded({
   subsets: ["latin", "cyrillic"],
   variable: "--font-display-face",
