@@ -4,7 +4,7 @@
 
 ## Запуск для разработки
 
-Нужны Node.js 24 (версия записана в `.nvmrc`) и запущенный Docker.
+Нужны Node.js 24 (версия записана в `.nvmrc`), npm 11.19 или новее и запущенный Docker. Более старый npm записывает неполный `package-lock.json`, поэтому `package.json` его не пускает (`devEngines`).
 
 ```bash
 npm install
