@@ -93,8 +93,13 @@
 
 - [x] **0.1 Репозиторий.** `.gitignore` для Next.js, ТЗ скопировано в `docs/spec.md`, этот план — в корне, первый коммит и push.
   - Репозиторий: https://github.com/Rics69/odium-web (ветка `main`).
-- [ ] **0.2 Каркас Next.js.** App Router, TypeScript strict, Tailwind CSS, ESLint, Prettier с сортировкой классов Tailwind. Версия Next.js — актуальная стабильная на день установки; проверю, что изменилось в API, на которые опирается ТЗ (`revalidateTag`, кэш страниц, View Transitions). Папки из раздела 2 ТЗ. Node 24 LTS в `.nvmrc` и в Docker (у тебя локально Node 25 — для разработки подходит). Переменные окружения проверяются Zod при старте (`lib/env.ts`): забытый секрет даёт понятную ошибку сразу, а не падение посреди работы. `.env.example`.
+- [x] **0.2 Каркас Next.js.** App Router, TypeScript strict, Tailwind CSS, ESLint, Prettier с сортировкой классов Tailwind. Версия Next.js — актуальная стабильная на день установки; проверю, что изменилось в API, на которые опирается ТЗ (`revalidateTag`, кэш страниц, View Transitions). Папки из раздела 2 ТЗ. Node 24 LTS в `.nvmrc` и в Docker (у тебя локально Node 25 — для разработки подходит). Переменные окружения проверяются Zod при старте (`lib/env.ts`): забытый секрет даёт понятную ошибку сразу, а не падение посреди работы. `.env.example`.
   - Готово, когда `npm run dev` открывает страницу, а `npm run lint` и `npm run typecheck` проходят чисто.
+  - Версии: Next.js 16.3.8 (Turbopack), React 19.2.8, Tailwind CSS 4, Zod 4. TypeScript 5 и ESLint 9 — те, что ставит шаблон Next.js: TypeScript 7 и ESLint 10 уже вышли, но шаблон Next.js 16.3 рассчитан на предыдущие версии.
+  - Next.js 16.3 кладёт свою документацию в `node_modules/next/dist/docs`, и `AGENTS.md` велит сверяться с ней перед кодом: версия новее моих знаний. Там же — правила проекта для агентов, `CLAUDE.md` ссылается на `AGENTS.md`.
+  - Включены `typedRoutes` (ссылка на несуществующую страницу — ошибка типов) и `noUncheckedIndexedAccess`. `npm run typecheck` сначала генерирует типы маршрутов (`next typegen`), потом запускает `tsc`.
+  - Переменные окружения пока одна — `SITE_URL`; каждый следующий шаг добавляет свои. Без неё падают и запуск сервера (через `instrumentation.ts`), и сборка.
+  - Главная — временная заглушка. Пустые папки из ТЗ держатся в git через `.gitkeep`. `npm run build` тоже проходит.
 - [ ] **0.3 База для разработки.** `compose.dev.yml`: PostgreSQL и Mailpit. Drizzle ORM и drizzle-kit, подключение в `lib/db`, первая миграция включает `pg_trgm`. Команды `db:generate`, `db:migrate`, `db:studio`. `/api/health` проверяет связь с базой.
 - [ ] **0.4 Тесты и CI.** Vitest для сервисного слоя на настоящем Postgres: отдельная тестовая база, миграции перед прогоном, очистка между тестами (голоса и лимиты без настоящей базы не проверить). Playwright с первым тестом «главная открывается». GitHub Actions на каждый push: линтер, типы, юнит-тесты, e2e.
 

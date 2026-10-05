@@ -26,3 +26,6 @@ storage/
 .claude/settings.local.json
 .DS_Store
 npm-debug.log*
+
+# Certificates
+*.pem
