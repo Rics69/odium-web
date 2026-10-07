@@ -8,7 +8,7 @@ test("the home page shows the studio, its games and team", async ({ page }) => {
   await expect(
     page.getByRole("heading", { level: 1, name: "ODIUM" }),
   ).toBeVisible();
-  await expect(page.getByText("Копим на ту, что станет кино")).toBeVisible();
+  await expect(page.getByText("Копим на игру мечты")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Odium — на главную" }),
   ).toBeVisible();

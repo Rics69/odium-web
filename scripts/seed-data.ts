@@ -83,7 +83,7 @@ export const testGames: (typeof games.$inferInsert)[] = [
 
 export const testStudio = {
   id: 1,
-  tagline: "Делаем игры. Копим на ту, что станет кино.",
+  tagline: "Делаем игры. Копим на игру мечты.",
   aboutMd:
     "Odium — маленькая инди-студия: основатель, разработчик и дизайнер. Делаем мобильные игры, в которые приятно возвращаться каждый день.",
   mission:
