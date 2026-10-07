@@ -18,6 +18,7 @@ blob-report/
 .env*
 !.env.example
 !.env.test
+!.env.deploy.example
 
 # Uploaded images in local development
 storage/

@@ -1,0 +1,84 @@
+# Production: the site, PostgreSQL and Caddy (HTTPS).
+#   cp .env.deploy.example .env   # then fill it in
+#   docker compose up -d --build
+# Locally it serves https://localhost with Caddy's own certificate.
+name: odium
+
+x-database-url: &database-url postgres://${POSTGRES_USER:-odium}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-odium}
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-odium}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-odium}
+    volumes:
+      # Postgres 18+ keeps its data in a versioned folder under /var/lib/postgresql.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Applies new migrations, then exits; the site starts only after it.
+  migrate:
+    build:
+      context: .
+      target: migrator
+    environment:
+      DATABASE_URL: *database-url
+      SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: *database-url
+      SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
+    volumes:
+      # Images uploaded in the admin (step 4.5).
+      - uploads:/app/storage
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  uploads:
+  caddy-data:
+  caddy-config:

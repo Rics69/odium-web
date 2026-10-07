@@ -1,0 +1,7 @@
+# HTTPS in front of the site. On the server SITE_ADDRESS is the domain and
+# Caddy gets a Let's Encrypt certificate by itself; locally it is localhost
+# with Caddy's own certificate, which the browser warns about.
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}
