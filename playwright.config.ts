@@ -12,7 +12,6 @@ export default defineConfig({
   reporter: process.env.CI
     ? [["github"], ["html", { open: "never" }]]
     : [["list"]],
-  globalSetup: "./test/global-setup.ts",
   use: {
     baseURL,
     trace: "retain-on-failure",
@@ -25,8 +24,7 @@ export default defineConfig({
   webServer: {
     // Always a production build on its own port with the test database:
     // e2e checks what players get, and never touches the dev server or data.
-    command: `npm run build && npm run start -- --port ${port}`,
-    // The home page needs no database; global setup migrates it after start.
+    command: `tsx e2e/prepare-database.ts && npm run build && npm run start -- --port ${port}`,
     url: baseURL,
     reuseExistingServer: false,
     timeout: 180_000,

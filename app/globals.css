@@ -84,6 +84,7 @@
   --animate-sheet-out: sheet-out 200ms ease-in forwards;
   --animate-pop-in: pop-in 250ms var(--ease-bounce);
   --animate-pop-out: pop-out 150ms ease-in forwards;
+  --animate-marquee: marquee 40s linear infinite;
 
   @keyframes overlay-in {
     from {
@@ -111,6 +112,11 @@
       transform: translateY(8px) scale(0.96);
     }
   }
+  @keyframes marquee {
+    to {
+      translate: -50% 0;
+    }
+  }
   @keyframes pop-out {
     to {
       opacity: 0;
@@ -129,6 +135,7 @@
 
 @layer base {
   html {
+    scroll-behavior: smooth;
     background-color: var(--color-paper);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
@@ -193,6 +200,29 @@
     opacity: 0;
     translate: 0 60%;
   }
+}
+
+/* Markdown blocks (components/ui/markdown.tsx). */
+.markdown > * + * {
+  margin-top: 1em;
+}
+
+.markdown ul {
+  list-style: disc;
+  padding-left: 1.25em;
+}
+
+.markdown ol {
+  list-style: decimal;
+  padding-left: 1.25em;
+}
+
+.markdown li + li {
+  margin-top: 0.25em;
+}
+
+.markdown strong {
+  font-weight: 600;
 }
 
 /* Reduced motion: states still change, nothing moves. */

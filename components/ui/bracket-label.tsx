@@ -15,7 +15,7 @@ export function BracketLabel({
   return (
     <span
       className={cn(
-        "group inline-flex items-center gap-1 text-sm font-medium tracking-label uppercase",
+        "group inline-flex items-center gap-1 text-sm font-medium tracking-label whitespace-nowrap uppercase",
         className,
       )}
     >

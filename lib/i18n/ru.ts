@@ -13,7 +13,7 @@ export const ru = {
   },
   studio: {
     mission:
-      "Мы делаем игры, чтобы накопить на мечту — игру, которая будет как искусство.",
+      "Каждая наша игра — шаг к мечте: создать игру, поставленную как кино, — с режиссурой, светом и историей, от которой невозможно оторваться.",
   },
   footer: {
     missionLabel: "Наша цель",
@@ -23,7 +23,38 @@ export const ru = {
     copyright: "© {year} Odium",
   },
   home: {
-    comingSoon: "Скоро здесь будет сайт студии.",
+    gamesCta: "Наши игры",
+    gamesLabel: "Игры",
+    gamesTitle: "Во что поиграть",
+    noGamesTitle: "Игры уже в пути",
+    noGamesText: "Первая выйдет совсем скоро — загляните чуть позже.",
+    aboutLabel: "О студии",
+    statGames: { one: "игра", few: "игры", many: "игр", other: "игры" },
+    statTeam: {
+      one: "человек",
+      few: "человека",
+      many: "человек",
+      other: "человека",
+    },
+    statPlatforms: "Платформы",
+    statGenres: "Жанры",
+    teamLabel: "Команда",
+    teamTitle: "Кто делает игры",
+  },
+  gameStatus: {
+    released: "Вышла",
+    in_development: "В разработке",
+  },
+  platforms: {
+    android: "Android",
+    ios: "iOS",
+    pc: "ПК",
+    browser: "Браузер",
+  },
+  game: {
+    comingSoonTitle: "Страница игры уже в пути",
+    comingSoonText:
+      "Скоро здесь будут описание, скриншоты, трейлер и доска пожеланий.",
   },
   games: {
     title: "Игры",

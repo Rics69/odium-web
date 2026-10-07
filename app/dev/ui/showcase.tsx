@@ -111,7 +111,7 @@ function TypeSection() {
         />
       </div>
       <p className="font-display text-display-sm">
-        Делаем игры, которые хочется трогать
+        Делаем игры. Копим на ту, что станет кино.
       </p>
       <div className="grid gap-8 md:grid-cols-2">
         <div className="flex flex-col gap-4">
