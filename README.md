@@ -11,6 +11,7 @@ npm install
 cp .env.example .env.local
 npm run services:up
 npm run db:migrate
+npm run db:seed
 npm run dev
 ```
 
@@ -28,6 +29,7 @@ npm run dev
 | `npm run services:up`, `services:down` | Запустить и остановить PostgreSQL и Mailpit в Docker |
 | `npm run db:generate` | Создать миграцию по изменениям схемы в `lib/db/schema.ts` |
 | `npm run db:migrate` | Применить миграции из `drizzle/` |
+| `npm run db:seed` | Тестовые данные: игры и «О студии» (можно запускать повторно) |
 | `npm run db:studio` | Drizzle Studio — просмотр базы в браузере |
 | `npm test` | Юнит-тесты (Vitest), `test:watch` — с перезапуском при изменениях |
 | `npm run test:e2e` | E2E-тесты (Playwright) |
