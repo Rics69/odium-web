@@ -51,8 +51,8 @@ export default async function HomePage() {
           <GamesGallery games={games} />
         ) : (
           <EmptyState
-            title={t("home.noGamesTitle")}
-            text={t("home.noGamesText")}
+            title={t("games.noGamesTitle")}
+            text={t("games.noGamesText")}
           />
         )}
       </section>

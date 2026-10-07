@@ -26,8 +26,6 @@ export const ru = {
     gamesCta: "Наши игры",
     gamesLabel: "Игры",
     gamesTitle: "Во что поиграть",
-    noGamesTitle: "Игры уже в пути",
-    noGamesText: "Первая выйдет совсем скоро — загляните чуть позже.",
     aboutLabel: "О студии",
     statGames: { one: "игра", few: "игры", many: "игр", other: "игры" },
     statTeam: {
@@ -58,9 +56,16 @@ export const ru = {
   },
   games: {
     title: "Игры",
-    comingSoonTitle: "Каталог уже в пути",
-    comingSoonText:
-      "Скоро здесь будут все игры Odium — с описаниями, скриншотами и доской пожеланий.",
+    description: "Все игры студии Odium: что уже вышло и что мы делаем сейчас.",
+    wishes: {
+      one: "{count} пожелание",
+      few: "{count} пожелания",
+      many: "{count} пожеланий",
+      other: "{count} пожелания",
+    },
+    noWishes: "Пока без пожеланий",
+    noGamesTitle: "Игр пока нет",
+    noGamesText: "Первая выйдет совсем скоро — загляните чуть позже.",
   },
   notFound: {
     title: "Такой страницы нет",

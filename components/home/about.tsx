@@ -1,17 +1,10 @@
 import type { ReactNode } from "react";
 import { BracketLabel } from "@/components/ui/bracket-label";
 import { Markdown } from "@/components/ui/markdown";
-import { platformsOf, type Platform } from "@/lib/games";
-import { t, tp, type MessageKey } from "@/lib/i18n";
+import { platformLabel, platformsOf } from "@/lib/games";
+import { t, tp } from "@/lib/i18n";
 import type { PlatformLink } from "@/lib/validation/games";
-import { CountUp } from "./count-up";
-
-const platformText = {
-  android: "platforms.android",
-  ios: "platforms.ios",
-  pc: "platforms.pc",
-  browser: "platforms.browser",
-} as const satisfies Record<Platform, MessageKey>;
+import { CountUp } from "@/components/ui/count-up";
 
 type AboutProps = {
   about: string;
@@ -49,9 +42,7 @@ export function About({ about, games, teamSize }: AboutProps) {
           {platforms.length > 0 && (
             <Tile wide>
               <p className="text-sm text-ink-2">{t("home.statPlatforms")}</p>
-              <Labels
-                items={platforms.map((platform) => t(platformText[platform]))}
-              />
+              <Labels items={platforms.map(platformLabel)} />
             </Tile>
           )}
           {genres.length > 0 && (

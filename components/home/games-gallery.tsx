@@ -14,7 +14,7 @@ import { Reveal } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { BracketLabel } from "@/components/ui/bracket-label";
 import { cn } from "@/lib/cn";
-import { t, type MessageKey } from "@/lib/i18n";
+import { statusLabel } from "@/lib/games";
 import type { GameStatus } from "@/lib/validation/games";
 
 export type GalleryGame = {
@@ -25,11 +25,6 @@ export type GalleryGame = {
   status: GameStatus;
   coverUrl: string | null;
 };
-
-const statusText = {
-  released: "gameStatus.released",
-  in_development: "gameStatus.in_development",
-} as const satisfies Record<GameStatus, MessageKey>;
 
 // The lookbook from the moodboard: different sizes and shapes, big gaps,
 // each picture drifting at its own speed while the page scrolls.
@@ -114,7 +109,7 @@ function GalleryItem({
                 </div>
               )}
               <Badge className="absolute top-4 left-4">
-                {t(statusText[game.status])}
+                {statusLabel(game.status)}
               </Badge>
             </div>
             <div className="mt-6 flex items-start justify-between gap-6">

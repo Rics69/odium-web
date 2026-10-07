@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { games } from "@/lib/db/schema";
@@ -18,6 +18,8 @@ const gameColumns = {
   status: games.status,
   releaseDate: games.releaseDate,
   wishesOpen: games.wishesOpen,
+  // The wishes table arrives in step 3.1; step 3.8 counts the real ones.
+  wishesCount: sql<number>`0`.mapWith(Number),
 };
 
 // Plain JSON only (no Date objects): cached results are stored as JSON.

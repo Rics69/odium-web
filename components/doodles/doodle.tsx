@@ -50,6 +50,12 @@ const shapes = {
     viewBox: "0 0 48 40",
     paths: ["M4 22 C 9 25, 13 30, 17 36 C 24 22, 32 11, 45 3"],
   },
+  bubble: {
+    viewBox: "0 0 48 44",
+    paths: [
+      "M8 8 C 20 3, 36 3, 42 10 C 47 17, 45 27, 38 31 C 31 35, 22 35, 17 33 L 8 40 L 11 30 C 4 26, 2 14, 9 7",
+    ],
+  },
   // Faces for the team stickers while there are no photos.
   "face-cap": {
     viewBox: "0 0 100 100",

@@ -1,0 +1,29 @@
+import { expect, test } from "@playwright/test";
+
+test("the catalogue lists published games and leads to their pages", async ({
+  page,
+}) => {
+  await page.goto("/games");
+
+  await expect(page).toHaveTitle("Игры · Odium");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Игры" }),
+  ).toBeVisible();
+
+  const main = page.getByRole("main");
+  await expect(
+    main.getByRole("heading", { level: 2, name: "Деревня Слов" }),
+  ).toBeVisible();
+  await expect(
+    main.getByRole("heading", { level: 2, name: "Неоновый сад" }),
+  ).toBeVisible();
+  await expect(main.getByText("Секретный проект")).toHaveCount(0);
+  await expect(main.getByText("В разработке")).toBeVisible();
+  await expect(main.getByText("Вышла")).toBeVisible();
+
+  await main.getByRole("link", { name: /Неоновый сад/ }).click();
+  await expect(page).toHaveURL("/games/neon-garden");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Неоновый сад" }),
+  ).toBeVisible();
+});
