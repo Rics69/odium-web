@@ -7,7 +7,7 @@ import * as schema from "./schema";
 // module, so the pool is kept on globalThis instead of leaking connections.
 const globalForDb = globalThis as unknown as { pgPool?: Pool };
 
-const pool =
+export const pool =
   globalForDb.pgPool ??
   new Pool({
     connectionString: env.DATABASE_URL,

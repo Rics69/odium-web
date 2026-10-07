@@ -1,6 +1,5 @@
 import { BracketLabel } from "@/components/ui/bracket-label";
-
-export type Social = { label: string; url: string };
+import type { Social } from "@/lib/validation/studio";
 
 // Social networks and stores as bracket labels: [ TELEGRAM ] [ VK ].
 export function SocialLinks({

@@ -1,20 +1,20 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { BracketLabel } from "@/components/ui/bracket-label";
 import { t } from "@/lib/i18n";
+import { getStudioInfo } from "@/lib/server/studio";
 import { PiggyBank } from "./piggy-bank";
-import { SocialLinks, type Social } from "./social-links";
-
-type SiteFooterProps = {
-  mission?: string;
-  socials?: Social[];
-};
+import { SocialLinks } from "./social-links";
 
 // The studio's goal with the piggy bank, links, and a giant faded wordmark
 // that the bottom edge of the page cuts off.
-export function SiteFooter({
-  mission = t("studio.mission"),
-  socials = [],
-}: SiteFooterProps) {
+export async function SiteFooter() {
+  // Render per request: the texts live in the database, which the build
+  // (in Docker or CI) does not have. The read itself is cached.
+  await connection();
+  const studio = await getStudioInfo();
+  const mission = studio?.mission || t("studio.mission");
+  const socials = studio?.socials ?? [];
   const year = new Date().getFullYear();
 
   return (
