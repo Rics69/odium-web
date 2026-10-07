@@ -83,18 +83,36 @@ export function Button({
 
 type LinkButtonProps = ComponentProps<typeof Link> & {
   variant?: ButtonVariant;
+  // The hand-drawn outline, as on Button; it tilts while the link is hovered.
+  doodle?: boolean;
 };
 
 // A link that looks like a button (navigation, not an action).
 export function LinkButton({
   variant = "primary",
+  doodle = false,
   className,
+  children,
   ...props
 }: LinkButtonProps) {
   return (
     <Link
-      className={cn(buttonClasses(variant), "active:scale-[0.97]", className)}
+      className={cn(
+        buttonClasses(variant),
+        "group active:scale-[0.97]",
+        className,
+      )}
       {...props}
-    />
+    >
+      {doodle && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-x-5 -inset-y-3.5 text-ink/70 transition-[rotate] duration-300 group-hover:-rotate-2"
+        >
+          <Doodle name="outline" draw="view" className="size-full" />
+        </span>
+      )}
+      {children}
+    </Link>
   );
 }

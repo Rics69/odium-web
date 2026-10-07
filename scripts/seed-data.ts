@@ -55,7 +55,8 @@ export const testGames: (typeof games.$inferInsert)[] = [
     status: "released",
     releaseDate: "2026-06-15",
     descriptionMd:
-      "Тестовая игра для разработки сайта. Сажай семена, поливай ростки и собирай букеты, которые светятся в темноте.",
+      "Тестовая игра для разработки сайта. Сажай семена, поливай ростки и собирай букеты, которые светятся в темноте.\n\nВместо трейлера — мультфильм «Big Buck Bunny» (Blender Foundation, CC BY 3.0).",
+    trailerUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
     coverUrl: "/placeholders/neon-garden-cover.webp",
     screenshots: [
       screenshot("neon-garden-1", "Грядки неонового сада"),

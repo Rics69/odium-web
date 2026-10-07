@@ -39,3 +39,23 @@ export function platformLabel(platform: Platform) {
 export function statusLabel(status: GameStatus) {
   return t(statusText[status]);
 }
+
+const storeText = {
+  google_play: "stores.google_play",
+  rustore: "stores.rustore",
+  appgallery: "stores.appgallery",
+  app_store: "stores.app_store",
+  yandex_games: "stores.yandex_games",
+  steam: "stores.steam",
+  web: "stores.web",
+} as const satisfies Record<Store, MessageKey>;
+
+/** «Google Play», «RuStore»… */
+export function storeLabel(store: Store) {
+  return t(storeText[store]);
+}
+
+/** View transition name shared by a game's cover on cards and on its page. */
+export function coverTransitionName(slug: string) {
+  return `game-cover-${slug}`;
+}

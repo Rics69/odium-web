@@ -49,11 +49,6 @@ export const ru = {
     pc: "ПК",
     browser: "Браузер",
   },
-  game: {
-    comingSoonTitle: "Страница игры уже в пути",
-    comingSoonText:
-      "Скоро здесь будут описание, скриншоты, трейлер и доска пожеланий.",
-  },
   games: {
     title: "Игры",
     description: "Все игры студии Odium: что уже вышло и что мы делаем сейчас.",
@@ -66,6 +61,49 @@ export const ru = {
     noWishes: "Пока без пожеланий",
     noGamesTitle: "Игр пока нет",
     noGamesText: "Первая выйдет совсем скоро — загляните чуть позже.",
+  },
+  game: {
+    wishCta: "Оставить пожелание",
+    aboutLabel: "Об игре",
+    status: "Статус",
+    releaseDate: "Дата выхода",
+    genre: "Жанр",
+    platforms: "Платформы",
+    soonIn: "Скоро в {store}",
+    screenshots: "Скриншоты",
+    trailer: "Трейлер",
+    playTrailer: "Смотреть трейлер «{game}»",
+    wishesTitle: "Пожелания игроков",
+    wishesEmpty:
+      "Пожеланий пока нет. Расскажите первым, что добавить в игру или убрать из неё.",
+    coverAlt: "Обложка игры «{game}»",
+    ogAlt: "Игра студии Odium",
+  },
+  gallery: {
+    open: "Открыть скриншот {number} из {total}",
+    title: "Скриншоты «{game}»",
+    previous: "Предыдущий скриншот",
+    next: "Следующий скриншот",
+    counter: "{current} из {total}",
+  },
+  stores: {
+    google_play: "Google Play",
+    rustore: "RuStore",
+    appgallery: "AppGallery",
+    app_store: "App Store",
+    yandex_games: "Яндекс Игры",
+    steam: "Steam",
+    web: "Сайт игры",
+  },
+  board: {
+    title: "Доска пожеланий",
+    soonTitle: "Доска откроется совсем скоро",
+    soonText:
+      "Здесь можно будет предлагать, что добавить в игру или убрать из неё, и голосовать за идеи других игроков.",
+    back: "К игре",
+  },
+  common: {
+    close: "Закрыть",
   },
   notFound: {
     title: "Такой страницы нет",

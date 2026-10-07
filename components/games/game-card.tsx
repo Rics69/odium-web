@@ -3,12 +3,17 @@
 import { motion, useReducedMotionConfig, useSpring } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import type { PointerEvent } from "react";
+import { ViewTransition, type PointerEvent } from "react";
 import { Doodle } from "@/components/doodles/doodle";
 import { spring } from "@/components/motion/presets";
 import { Badge } from "@/components/ui/badge";
 import { BracketLabel } from "@/components/ui/bracket-label";
-import { platformLabel, platformsOf, statusLabel } from "@/lib/games";
+import {
+  coverTransitionName,
+  platformLabel,
+  platformsOf,
+  statusLabel,
+} from "@/lib/games";
 import { t, tp } from "@/lib/i18n";
 import type { GameStatus, PlatformLink } from "@/lib/validation/games";
 
@@ -60,24 +65,30 @@ export function GameCard({ game }: { game: GameCardData }) {
         onPointerLeave={rest}
         className="group flex h-full flex-col overflow-hidden rounded-lg border border-line bg-surface transition-[box-shadow,border-color] duration-300 hover:border-transparent hover:shadow-md"
       >
-        <div className="relative aspect-[16/10] overflow-hidden bg-line">
-          {game.coverUrl ? (
-            <Image
-              src={game.coverUrl}
-              alt=""
-              fill
-              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-              className="object-cover transition-[scale] duration-700 ease-out group-hover:scale-105"
-            />
-          ) : (
-            <div className="grid size-full place-items-center text-ink-3">
-              <Doodle name="sparkle" className="size-12" />
-            </div>
-          )}
-          <Badge className="absolute top-4 left-4">
-            {statusLabel(game.status)}
-          </Badge>
-        </div>
+        <ViewTransition
+          name={coverTransitionName(game.slug)}
+          share="game-cover"
+          default="none"
+        >
+          <div className="relative aspect-[16/10] overflow-hidden bg-line">
+            {game.coverUrl ? (
+              <Image
+                src={game.coverUrl}
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                className="object-cover transition-[scale] duration-700 ease-out group-hover:scale-105"
+              />
+            ) : (
+              <div className="grid size-full place-items-center text-ink-3">
+                <Doodle name="sparkle" className="size-12" />
+              </div>
+            )}
+            <Badge className="absolute top-4 left-4">
+              {statusLabel(game.status)}
+            </Badge>
+          </div>
+        </ViewTransition>
 
         <div className="flex flex-1 flex-col gap-3 p-6">
           {game.genre && (

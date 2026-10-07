@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPlural, formatRelativeTime, t } from "./index";
+import { formatDate, formatPlural, formatRelativeTime, t } from "./index";
 
 describe("t", () => {
   it("returns the text by key and fills placeholders", () => {
@@ -46,5 +46,12 @@ describe("formatRelativeTime", () => {
     [-2 * 60 * 60, "через 2 часа"],
   ])("%d seconds ago → %s", (seconds, expected) => {
     expect(formatRelativeTime(ago(seconds), now)).toBe(expected);
+  });
+});
+
+describe("formatDate", () => {
+  it("writes a date column out in Russian", () => {
+    expect(formatDate("2026-06-15")).toBe("15 июня 2026 г.");
+    expect(formatDate("2027-01-01")).toBe("1 января 2027 г.");
   });
 });

@@ -84,3 +84,15 @@ export function formatRelativeTime(date: Date, now: Date = new Date()) {
   }
   return relative.format(Math.round(seconds / chosen[1]), chosen[0]);
 }
+
+const dateFormat = new Intl.DateTimeFormat(locale, {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+/** «15 июня 2026 г.» from a date column ("2026-06-15"). */
+export function formatDate(isoDate: string) {
+  return dateFormat.format(new Date(`${isoDate}T00:00:00Z`));
+}

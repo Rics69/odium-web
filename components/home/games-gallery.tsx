@@ -8,13 +8,13 @@ import {
 } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, ViewTransition } from "react";
 import { Doodle } from "@/components/doodles/doodle";
 import { Reveal } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { BracketLabel } from "@/components/ui/bracket-label";
 import { cn } from "@/lib/cn";
-import { statusLabel } from "@/lib/games";
+import { coverTransitionName, statusLabel } from "@/lib/games";
 import type { GameStatus } from "@/lib/validation/games";
 
 export type GalleryGame = {
@@ -89,29 +89,35 @@ function GalleryItem({
       <motion.div style={{ y: reduceMotion ? 0 : drift }}>
         <Reveal>
           <Link href={`/games/${game.slug}`} className="group block">
-            <div
-              className={cn(
-                "relative overflow-hidden rounded-lg bg-line",
-                layout.aspect,
-              )}
+            <ViewTransition
+              name={coverTransitionName(game.slug)}
+              share="game-cover"
+              default="none"
             >
-              {game.coverUrl ? (
-                <Image
-                  src={game.coverUrl}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 50vw, 90vw"
-                  className="object-cover transition-[scale] duration-700 ease-out group-hover:scale-105"
-                />
-              ) : (
-                <div className="grid size-full place-items-center text-ink-3">
-                  <Doodle name="sparkle" className="size-16" />
-                </div>
-              )}
-              <Badge className="absolute top-4 left-4">
-                {statusLabel(game.status)}
-              </Badge>
-            </div>
+              <div
+                className={cn(
+                  "relative overflow-hidden rounded-lg bg-line",
+                  layout.aspect,
+                )}
+              >
+                {game.coverUrl ? (
+                  <Image
+                    src={game.coverUrl}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 50vw, 90vw"
+                    className="object-cover transition-[scale] duration-700 ease-out group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="grid size-full place-items-center text-ink-3">
+                    <Doodle name="sparkle" className="size-16" />
+                  </div>
+                )}
+                <Badge className="absolute top-4 left-4">
+                  {statusLabel(game.status)}
+                </Badge>
+              </div>
+            </ViewTransition>
             <div className="mt-6 flex items-start justify-between gap-6">
               <div className="flex flex-col gap-2">
                 {game.genre && (

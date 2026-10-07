@@ -225,8 +225,20 @@
   font-weight: 600;
 }
 
+/* A game cover flies from its card to the game page (View Transitions). */
+::view-transition-group(.game-cover) {
+  animation-duration: 450ms;
+  animation-timing-function: var(--ease-out);
+}
+
 /* Reduced motion: states still change, nothing moves. */
 @media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
   *,
   *::before,
   *::after {
@@ -235,6 +247,12 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+:root[data-motion="reduce"]::view-transition-group(*),
+:root[data-motion="reduce"]::view-transition-old(*),
+:root[data-motion="reduce"]::view-transition-new(*) {
+  animation: none !important;
 }
 
 :root[data-motion="reduce"] *,
