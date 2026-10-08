@@ -9,9 +9,17 @@ export type CaughtLetter = {
   Text: string;
 };
 
-/** The latest letter to an address; waits a little for it to arrive. */
-export async function findLetter(to: string): Promise<CaughtLetter> {
-  const query = encodeURIComponent(`to:"${to}"`);
+/**
+ * The latest letter to an address, with that subject if given; waits a
+ * little for it to arrive.
+ */
+export async function findLetter(
+  to: string,
+  subject?: string,
+): Promise<CaughtLetter> {
+  const query = encodeURIComponent(
+    subject ? `to:"${to}" subject:"${subject}"` : `to:"${to}"`,
+  );
   for (let attempt = 0; attempt < 20; attempt++) {
     const { messages } = (await fetch(
       `${MAILPIT_URL}/api/v1/search?query=${query}`,

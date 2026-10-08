@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { banMessage } from "./ban";
-import { sendVerificationEmail } from "./mail/letters";
+import { sendPasswordResetEmail, sendVerificationEmail } from "./mail/letters";
 
 const DAY = 24 * 60 * 60;
 
@@ -32,7 +32,16 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    // A reset link lives an hour and works once; the new password signs
+    // the player out everywhere (spec, section 7).
+    resetPasswordTokenExpiresIn: 60 * 60,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: ({ user, url }) =>
+      sendPasswordResetEmail({ to: user.email, nickname: user.name, url }),
   },
+  // One-time tokens are kept as hashes: a copy of the database gives no
+  // working reset links.
+  verification: { storeIdentifier: "hashed" },
   // Signed in right after sign-up, but posting and voting wait for the
   // confirmation (spec, section 3). The link lives a day; opened on another
   // device it signs the player in there too.
@@ -74,12 +83,16 @@ export const auth = betterAuth({
   plugins: [adminPlugin],
   // Our routes with our checks and limits stand in for these:
   // /api/auth/sign-up and /api/auth/send-verification-email (step 2.4),
-  // /api/auth/sign-in (step 2.5), nickname changes through PATCH /api/me
-  // (step 2.7).
+  // /api/auth/sign-in (step 2.5), /api/auth/request-password-reset and
+  // /api/auth/reset-password (step 2.6), nickname changes through
+  // PATCH /api/me (step 2.7). The link from a reset letter still opens
+  // Better Auth's /reset-password/:token, which checks it.
   disabledPaths: [
     ...adminEndpointPaths,
     "/sign-up/email",
     "/sign-in/email",
+    "/request-password-reset",
+    "/reset-password",
     "/send-verification-email",
     "/update-user",
   ],

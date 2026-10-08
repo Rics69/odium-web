@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/field";
+import { TextLink } from "@/components/ui/text-link";
 import { ApiRequestError, apiPost } from "@/lib/api-client";
 import { t } from "@/lib/i18n";
 import { signInSchema } from "@/lib/validation/account";
@@ -89,6 +90,9 @@ export function LoginForm({ next }: { next: string }) {
             />
           )}
         </Field>
+        <TextLink href="/forgot-password" className="-mt-2 self-end text-sm">
+          {t("account.login.forgot")}
+        </TextLink>
         {formError && (
           <p role="alert" className="text-error">
             {formError}
