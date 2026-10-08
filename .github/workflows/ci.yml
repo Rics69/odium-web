@@ -28,6 +28,12 @@ jobs:
           --health-interval 2s
           --health-timeout 3s
           --health-retries 15
+      # Catches the letters the tests send (SMTP 1025, API 8025).
+      mailpit:
+        image: axllent/mailpit:v1.31.4
+        ports:
+          - 1025:1025
+          - 8025:8025
 
     steps:
       - uses: actions/checkout@v7

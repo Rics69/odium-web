@@ -4,7 +4,16 @@
 # Locally it serves https://localhost with Caddy's own certificate.
 name: odium
 
-x-database-url: &database-url postgres://${POSTGRES_USER:-odium}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-odium}
+# What the site and the migrate service (it also runs the seed) read.
+x-app-env: &app-env
+  DATABASE_URL: postgres://${POSTGRES_USER:-odium}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-odium}
+  SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
+  SMTP_HOST: ${SMTP_HOST:?Set SMTP_HOST in .env}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  MAIL_FROM: ${MAIL_FROM:?Set MAIL_FROM in .env}
 
 services:
   postgres:
@@ -28,10 +37,7 @@ services:
     build:
       context: .
       target: migrator
-    environment:
-      DATABASE_URL: *database-url
-      SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
+    environment: *app-env
     depends_on:
       postgres:
         condition: service_healthy
@@ -42,10 +48,7 @@ services:
       context: .
       target: runner
     restart: unless-stopped
-    environment:
-      DATABASE_URL: *database-url
-      SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
+    environment: *app-env
     volumes:
       # Images uploaded in the admin (step 4.5).
       - uploads:/app/storage

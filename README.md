@@ -15,7 +15,7 @@ npm run db:seed
 npm run dev
 ```
 
-Сайт откроется на http://localhost:3000, проверка здоровья — http://localhost:3000/api/health. Письма, которые отправляет сайт, видны в Mailpit: http://localhost:8025.
+Сайт откроется на http://localhost:3000, проверка здоровья — http://localhost:3000/api/health. Письма, которые отправляет сайт, видны в Mailpit: http://localhost:8025. Образцы всех писем отправляет кнопка «Отправить образцы» на витрине http://localhost:3000/dev/ui.
 
 ## Продакшн-сборка в Docker
 
@@ -26,7 +26,7 @@ cp .env.deploy.example .env
 docker compose up -d --build
 ```
 
-В `.env` — домен, публичный адрес сайта, пароль базы и секрет для cookie сессий. На сервере Caddy сам получит для домена сертификат Let's Encrypt. Локально сайт открывается на https://localhost с собственным сертификатом Caddy, поэтому браузер предупредит о нём — для проверки это нормально.
+В `.env` — домен, публичный адрес сайта, пароль базы, секрет для cookie сессий и SMTP для писем. На сервере Caddy сам получит для домена сертификат Let's Encrypt. Локально сайт открывается на https://localhost с собственным сертификатом Caddy, поэтому браузер предупредит о нём — для проверки это нормально.
 
 - Тестовые данные: `docker compose run --rm migrate npm run db:seed`, затем `docker compose up -d --force-recreate app` (сайт кэширует прочитанное из базы).
 - Остановить: `docker compose down` — база и загруженные картинки остаются в томах Docker.

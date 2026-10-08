@@ -64,6 +64,7 @@ export function Showcase() {
           <OverlaySection />
           <StateSection />
           <RevealSection />
+          <MailSection />
         </main>
       </div>
     </MotionConfig>
@@ -548,6 +549,46 @@ function RevealSection() {
             </Card>
           </Reveal>
         ))}
+      </div>
+    </Section>
+  );
+}
+
+function MailSection() {
+  const toast = useToast();
+  const [sending, setSending] = useState(false);
+
+  async function sendSamples() {
+    setSending(true);
+    const response = await fetch("/api/dev/mail", { method: "POST" }).catch(
+      () => null,
+    );
+    setSending(false);
+    toast(
+      response?.ok
+        ? { title: "Письма в Mailpit", tone: "success" }
+        : { title: "Не отправилось — Mailpit запущен?", tone: "error" },
+    );
+  }
+
+  return (
+    <Section
+      label="Почта"
+      title="Письма"
+      note="Подтверждение почты, сброс пароля, новая почта и предупреждение на старую. Кнопка отправляет по одному образцу каждого в Mailpit."
+    >
+      <div className="flex flex-wrap items-center gap-6">
+        <Button onClick={sendSamples} disabled={sending}>
+          Отправить образцы
+        </Button>
+        <a
+          href="http://localhost:8025"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-accent underline underline-offset-4"
+        >
+          Открыть Mailpit
+        </a>
       </div>
     </Section>
   );

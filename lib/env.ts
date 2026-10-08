@@ -10,6 +10,13 @@ const envSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   // Signs session cookies and one-time links: openssl rand -base64 32
   BETTER_AUTH_SECRET: z.string().min(32),
+  // Outgoing mail. In development: Mailpit from compose.dev.yml, no login.
+  SMTP_HOST: z.string().min(1),
+  SMTP_PORT: z.coerce.number().int().positive(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  // Sender, with a name: Odium <no-reply@odium.example>
+  MAIL_FROM: z.string().min(1),
 });
 
 const parsed = envSchema.safeParse(process.env);
