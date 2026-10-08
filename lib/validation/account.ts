@@ -51,6 +51,18 @@ export const signUpSchema = z.object({
 });
 export type SignUpInput = z.infer<typeof signUpSchema>;
 
+// Only "is there anything": the rules of a new password would tell a
+// guesser what not to try.
+export const signInSchema = z.object({
+  email: emailSchema,
+  password: z
+    .string({ error: t("account.login.passwordRequired") })
+    .min(1, t("account.login.passwordRequired"))
+    .max(PASSWORD_MAX, t("account.login.invalid")),
+  next: z.string().optional(),
+});
+export type SignInInput = z.infer<typeof signInSchema>;
+
 export const resendVerificationSchema = z.object({
   email: emailSchema,
   next: z.string().optional(),

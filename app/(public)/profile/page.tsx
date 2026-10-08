@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { SignOutButton } from "@/components/account/sign-out-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { t } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/server/session";
 
 export const metadata: Metadata = { title: t("account.profileTitle") };
 
-// Until the profile arrives in step 2.7.
+// Until the profile arrives in step 2.7; signing out works already.
 export default async function ProfilePage() {
   const user = await getCurrentUser(await headers());
   if (!user) redirect("/login");
@@ -21,6 +22,7 @@ export default async function ProfilePage() {
       <EmptyState
         title={t("account.profileSoonTitle")}
         text={t("account.profileSoonText")}
+        action={<SignOutButton />}
       />
     </section>
   );

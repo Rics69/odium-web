@@ -27,7 +27,7 @@ export default async function RegisterPage({
           <TextLink
             href={`/login?next=${encodeURIComponent(nextPath)}` as Route}
           >
-            {t("account.register.signIn")}
+            {t("account.login.submit")}
           </TextLink>
         </>
       }

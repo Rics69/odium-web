@@ -5,13 +5,19 @@ import { db } from "@/lib/db";
 import { blockedEmailDomains, user as users } from "@/lib/db/schema";
 import { t } from "@/lib/i18n";
 import { safeNextPath } from "@/lib/next-path";
-import type { SignUpInput } from "@/lib/validation/account";
+import type { SignInInput, SignUpInput } from "@/lib/validation/account";
 import { auth } from "./auth";
 import { ApiError, type FieldErrors } from "./http";
-import { hitRateLimit } from "./rate-limit";
+import { locks } from "./limits";
+import {
+  hitRateLimit,
+  lock,
+  lockSecondsLeft,
+  resetRateLimit,
+} from "./rate-limit";
 
-// Sign-up and email confirmation. Better Auth keeps the accounts; our checks
-// and limits run first, and its own routes for these are closed.
+// Sign-up, email confirmation and sign-in. Better Auth keeps the accounts;
+// our checks and limits run first, and its own routes for these are closed.
 
 /** The link in a confirmation letter leads here, then back to `next`. */
 export function verifyEmailCallback(next?: string): string {
@@ -147,5 +153,45 @@ export async function resendVerificationEmail(
       throw new ApiError("FORBIDDEN");
     }
     throw error;
+  }
+}
+
+/**
+ * Signs a player in (spec, section 7). A wrong address and a wrong password
+ * get the same answer. Tries are counted per IP + email before the password
+ * is checked, so guesses sent at once cannot slip past the limit; the tenth
+ * failure locks that pair out for 15 minutes, and a success starts over.
+ */
+export async function signIn(
+  input: SignInInput,
+  request: { headers: Headers; ip: string },
+) {
+  const subject = `${request.ip}|${input.email}`;
+  const lockedFor = await lockSecondsLeft("signIn", subject);
+  if (lockedFor > 0) {
+    throw new ApiError("RATE_LIMITED", { retryAfterSeconds: lockedFor });
+  }
+  const tries = await hitRateLimit("signInTries", subject);
+  if (!tries.allowed) {
+    await lock("signIn", subject);
+    throw new ApiError("RATE_LIMITED", { retryAfterSeconds: locks.signIn });
+  }
+
+  try {
+    const { headers, response } = await auth.api.signInEmail({
+      body: { email: input.email, password: input.password },
+      headers: request.headers,
+      returnHeaders: true,
+    });
+    await resetRateLimit("signInTries", subject);
+    return { user: response.user, cookies: headers.getSetCookie() };
+  } catch (error) {
+    if (!isAPIError(error)) throw error;
+    if (error.body?.code === "BANNED_USER") {
+      // The message says why and until when (lib/server/ban.ts).
+      throw new ApiError("BANNED", { message: error.body.message });
+    }
+    if (tries.remaining === 0) await lock("signIn", subject);
+    throw new ApiError("INVALID_CREDENTIALS");
   }
 }

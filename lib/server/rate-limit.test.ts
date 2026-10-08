@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { rateLimits } from "@/lib/db/schema";
 import { limits } from "./limits";
-import { hitRateLimit } from "./rate-limit";
+import {
+  hitRateLimit,
+  lock,
+  lockSecondsLeft,
+  resetRateLimit,
+} from "./rate-limit";
 
 // The vote limit: 60 a minute.
 const { max } = limits.vote;
@@ -81,5 +86,55 @@ describe("rate limits", () => {
     expect(results.filter((result) => result.allowed)).toHaveLength(max);
     const [row] = await db.select().from(rateLimits);
     expect(row?.count).toBe(max + 40);
+  });
+});
+
+describe("locks", () => {
+  it("hold for their whole time from the moment they start", async () => {
+    await lock("signIn", "203.0.113.5|pixel@example.com", at("12:14:30"));
+
+    expect(
+      await lockSecondsLeft(
+        "signIn",
+        "203.0.113.5|pixel@example.com",
+        at("12:14:30"),
+      ),
+    ).toBe(15 * 60);
+    expect(
+      await lockSecondsLeft(
+        "signIn",
+        "203.0.113.5|pixel@example.com",
+        at("12:29:00"),
+      ),
+    ).toBe(30);
+    expect(
+      await lockSecondsLeft(
+        "signIn",
+        "203.0.113.5|pixel@example.com",
+        at("12:29:30"),
+      ),
+    ).toBe(0);
+  });
+
+  it("belong to one subject", async () => {
+    await lock("signIn", "a", at("12:00:00"));
+    expect(await lockSecondsLeft("signIn", "b", at("12:00:01"))).toBe(0);
+  });
+});
+
+describe("resetting a limit", () => {
+  it("forgets the subject's counts and only them", async () => {
+    await hitTimes(max, "user-1", at("12:00:10"));
+    await hitTimes(max, "user-2", at("12:00:10"));
+
+    await resetRateLimit("vote", "user-1");
+
+    expect(await hitRateLimit("vote", "user-1", at("12:00:20"))).toEqual({
+      allowed: true,
+      remaining: max - 1,
+    });
+    expect(await hitRateLimit("vote", "user-2", at("12:00:20"))).toMatchObject({
+      allowed: false,
+    });
   });
 });

@@ -5,6 +5,7 @@ import { admin } from "better-auth/plugins/admin";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { env } from "@/lib/env";
+import { banMessage } from "./ban";
 import { sendVerificationEmail } from "./mail/letters";
 
 const DAY = 24 * 60 * 60;
@@ -12,7 +13,9 @@ const DAY = 24 * 60 * 60;
 // Roles and bans. Admins act through our own /api/admin/* (phase 4), which
 // writes every action to the log, so the plugin's HTTP endpoints stay
 // closed; its functions on `auth.api` still work on the server.
-const adminPlugin = admin();
+// A banned player sees why and until when, and only after the right
+// password, so a ban does not reveal who is registered.
+const adminPlugin = admin({ bannedUserMessage: banMessage });
 const adminEndpointPaths = Object.values(adminPlugin.endpoints).map(
   (endpoint) => endpoint.path,
 );
@@ -71,10 +74,12 @@ export const auth = betterAuth({
   plugins: [adminPlugin],
   // Our routes with our checks and limits stand in for these:
   // /api/auth/sign-up and /api/auth/send-verification-email (step 2.4),
-  // nickname changes through PATCH /api/me (step 2.7).
+  // /api/auth/sign-in (step 2.5), nickname changes through PATCH /api/me
+  // (step 2.7).
   disabledPaths: [
     ...adminEndpointPaths,
     "/sign-up/email",
+    "/sign-in/email",
     "/send-verification-email",
     "/update-user",
   ],

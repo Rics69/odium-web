@@ -70,7 +70,10 @@ export function HeaderBar({ user }: { user: HeaderUser | null }) {
                     active={pathname === "/profile"}
                   />
                 ) : (
-                  <NavLink href="/login" active={pathname === "/login"}>
+                  <NavLink
+                    href={signInHref(pathname)}
+                    active={pathname === "/login"}
+                  >
                     {t("nav.signIn")}
                   </NavLink>
                 )}
@@ -135,4 +138,13 @@ function ProfileLink({
       </span>
     </Link>
   );
+}
+
+// After signing in the player comes back to the page they were on.
+const AUTH_PAGES = ["/", "/login", "/register", "/verify-email"];
+
+function signInHref(pathname: string): Route {
+  return AUTH_PAGES.includes(pathname)
+    ? "/login"
+    : (`/login?next=${encodeURIComponent(pathname)}` as Route);
 }

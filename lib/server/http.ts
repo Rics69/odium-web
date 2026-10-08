@@ -11,7 +11,12 @@ import { hitRateLimit } from "./rate-limit";
 const errors = {
   VALIDATION_ERROR: { status: 400, message: () => t("errors.validation") },
   UNAUTHORIZED: { status: 401, message: () => t("errors.unauthorized") },
+  INVALID_CREDENTIALS: {
+    status: 401,
+    message: () => t("account.login.invalid"),
+  },
   FORBIDDEN: { status: 403, message: () => t("errors.forbidden") },
+  BANNED: { status: 403, message: () => t("account.login.banned") },
   EMAIL_NOT_VERIFIED: {
     status: 403,
     message: () => t("errors.emailNotVerified"),

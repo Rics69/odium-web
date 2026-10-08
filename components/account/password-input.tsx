@@ -19,8 +19,8 @@ export function PasswordInput(props: Omit<ComponentProps<"input">, "type">) {
         onClick={() => setVisible((value) => !value)}
         aria-label={t(
           visible
-            ? "account.register.hidePassword"
-            : "account.register.showPassword",
+            ? "account.fields.hidePassword"
+            : "account.fields.showPassword",
         )}
         aria-pressed={visible}
         className="absolute inset-y-0 right-0 grid w-12 place-items-center rounded-r-md text-ink-2 transition-colors hover:text-accent"

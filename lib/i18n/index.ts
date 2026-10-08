@@ -96,3 +96,14 @@ const dateFormat = new Intl.DateTimeFormat(locale, {
 export function formatDate(isoDate: string) {
   return dateFormat.format(new Date(`${isoDate}T00:00:00Z`));
 }
+
+const dateTimeFormat = new Intl.DateTimeFormat(locale, {
+  dateStyle: "long",
+  timeStyle: "short",
+  timeZone: "Europe/Moscow",
+});
+
+/** «15 октября 2026 г. в 18:30 по Москве»: most players are in Russia. */
+export function formatDateTime(date: Date) {
+  return t("time.moscow", { time: dateTimeFormat.format(date) });
+}

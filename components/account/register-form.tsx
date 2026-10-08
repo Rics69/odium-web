@@ -87,7 +87,7 @@ export function RegisterForm({ next }: { next: string }) {
         onSubmit={submit}
         className="flex flex-col gap-6"
       >
-        <Field label={t("account.register.email")} error={errors.email}>
+        <Field label={t("account.fields.email")} error={errors.email}>
           {(control) => (
             <Input
               {...control}
@@ -101,7 +101,7 @@ export function RegisterForm({ next }: { next: string }) {
           )}
         </Field>
         <Field
-          label={t("account.register.nickname")}
+          label={t("account.fields.nickname")}
           hint={t("account.register.nicknameHint")}
           error={errors.nickname}
         >
@@ -119,7 +119,7 @@ export function RegisterForm({ next }: { next: string }) {
           )}
         </Field>
         <Field
-          label={t("account.register.password")}
+          label={t("account.fields.password")}
           hint={t("account.register.passwordHint")}
           error={errors.password}
         >

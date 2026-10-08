@@ -17,8 +17,8 @@ export const limits = {
   api: { max: 300, windowSeconds: minute },
   /** Sign-ups, per IP (step 2.4). */
   signUp: { max: 3, windowSeconds: hour },
-  /** Failed sign-ins, per IP + email; then a 15-minute lock (step 2.5). */
-  signInFailures: { max: 10, windowSeconds: 15 * minute },
+  /** Sign-in tries, per IP + email; when they run out, the lock below. */
+  signInTries: { max: 10, windowSeconds: 15 * minute },
   /** New wishes, per user; admins have no limit (step 3.2). */
   wishPerHour: { max: 5, windowSeconds: hour },
   wishPerDay: { max: 20, windowSeconds: day },
@@ -37,3 +37,11 @@ export const limits = {
 } as const satisfies Record<string, RateLimitRule>;
 
 export type LimitName = keyof typeof limits;
+
+/** How long a subject waits once it is locked out, in seconds. */
+export const locks = {
+  /** Ten failed sign-ins for one IP + email: no tries for 15 minutes. */
+  signIn: 15 * minute,
+} as const;
+
+export type LockName = keyof typeof locks;

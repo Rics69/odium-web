@@ -81,7 +81,7 @@ export function EmailVerified({
             href={`/login?next=${encodeURIComponent(next)}` as Route}
             className="mt-2"
           >
-            {t("account.register.signIn")}
+            {t("account.login.submit")}
           </LinkButton>
         </>
       )}
@@ -167,7 +167,7 @@ function ResendLetter({
       className="flex flex-col gap-4 text-left"
     >
       {email === null && (
-        <Field label={t("account.register.email")} error={error ?? undefined}>
+        <Field label={t("account.fields.email")} error={error ?? undefined}>
           {(control) => (
             <Input
               {...control}
