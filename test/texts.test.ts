@@ -14,6 +14,8 @@ const NOT_CODE = [
   "**/*.test.tsx",
   "app/dev/**",
   "lib/i18n/ru.ts",
+  // Data, not interface text: nicknames nobody may take.
+  "lib/validation/reserved-nicknames.ts",
 ];
 
 type Literal = { file: string; line: number; text: string };

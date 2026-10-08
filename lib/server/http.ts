@@ -17,6 +17,15 @@ const errors = {
     message: () => t("errors.emailNotVerified"),
   },
   NOT_FOUND: { status: 404, message: () => t("errors.notFound") },
+  NICKNAME_TAKEN: {
+    status: 409,
+    message: () => t("account.errors.nicknameTaken"),
+  },
+  EMAIL_TAKEN: { status: 409, message: () => t("account.errors.emailTaken") },
+  EMAIL_ALREADY_VERIFIED: {
+    status: 409,
+    message: () => t("errors.emailAlreadyVerified"),
+  },
   RATE_LIMITED: {
     status: 429,
     message: (retryAfterSeconds = 60) => {

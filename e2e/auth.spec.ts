@@ -1,20 +1,18 @@
-import { randomBytes } from "node:crypto";
 import { expect, test, type APIRequestContext } from "@playwright/test";
+import { newPlayer, randomIp } from "./visitors";
 
-// Sign-up arrives as a page in step 2.4; until then accounts are made
-// through the Better Auth API, as the page will do.
+test.beforeEach(async ({ context }) => {
+  await context.setExtraHTTPHeaders({ "x-forwarded-for": randomIp() });
+});
+
 async function signUp(request: APIRequestContext, baseURL: string) {
-  const nickname = `Pixel_${randomBytes(4).toString("hex")}`;
-  const response = await request.post("/api/auth/sign-up/email", {
-    headers: { origin: baseURL },
-    data: {
-      name: nickname,
-      email: `${nickname.toLowerCase()}@example.com`,
-      password: randomBytes(12).toString("hex"),
-    },
+  const player = newPlayer();
+  const response = await request.post("/api/auth/sign-up", {
+    headers: { origin: baseURL, "x-forwarded-for": randomIp() },
+    data: player,
   });
-  expect(response.status()).toBe(200);
-  return nickname;
+  expect(response.status()).toBe(201);
+  return player.nickname;
 }
 
 test("a guest sees «Войти» and no profile", async ({ page }) => {
@@ -60,13 +58,9 @@ test("a signed-in player sees their nickname in the header", async ({
 });
 
 test("auth routes refuse requests from other sites", async ({ request }) => {
-  const response = await request.post("/api/auth/sign-up/email", {
+  const response = await request.post("/api/auth/sign-up", {
     headers: { origin: "https://evil.example" },
-    data: {
-      name: "Evil_Twin",
-      email: "evil@example.com",
-      password: "evil-password-123",
-    },
+    data: newPlayer(),
   });
 
   expect(response.status()).toBe(403);

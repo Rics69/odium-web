@@ -5,7 +5,7 @@ import { t } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: t("account.signInTitle") };
 
-// Until sign-up and sign-in arrive in steps 2.4 and 2.5.
+// Until sign-in arrives in step 2.5; signing up works already.
 export default function LoginPage() {
   return (
     <section className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-16 md:px-8">
@@ -16,8 +16,8 @@ export default function LoginPage() {
         title={t("account.signInSoonTitle")}
         text={t("account.signInSoonText")}
         action={
-          <LinkButton href="/games" variant="secondary">
-            {t("account.toGames")}
+          <LinkButton href="/register">
+            {t("account.register.submit")}
           </LinkButton>
         }
       />

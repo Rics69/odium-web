@@ -29,6 +29,20 @@
       "when": 1791451800079,
       "tag": "0003_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791471359150,
+      "tag": "0004_blocked_email_domains",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791471359724,
+      "tag": "0005_blocked_email_domains_list",
+      "breakpoints": true
     }
   ]
 }

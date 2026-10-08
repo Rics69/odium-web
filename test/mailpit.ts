@@ -26,3 +26,12 @@ export async function findLetter(to: string): Promise<CaughtLetter> {
   }
   throw new Error(`No letter to ${to} in Mailpit`);
 }
+
+/** How many letters an address has received. */
+export async function countLetters(to: string): Promise<number> {
+  const query = encodeURIComponent(`to:"${to}"`);
+  const { messages_count } = (await fetch(
+    `${MAILPIT_URL}/api/v1/search?query=${query}`,
+  ).then((response) => response.json())) as { messages_count: number };
+  return messages_count;
+}

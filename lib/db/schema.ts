@@ -156,3 +156,9 @@ export const verification = pgTable(
   },
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
+
+// Disposable mail services: signing up with them is refused (spec, section 7).
+// A domain also blocks its subdomains. Edited in the admin (step 4.6).
+export const blockedEmailDomains = pgTable("blocked_email_domains", {
+  domain: text().primaryKey(),
+});

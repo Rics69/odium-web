@@ -5,6 +5,7 @@ import { admin } from "better-auth/plugins/admin";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { env } from "@/lib/env";
+import { sendVerificationEmail } from "./mail/letters";
 
 const DAY = 24 * 60 * 60;
 
@@ -29,6 +30,16 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
   },
+  // Signed in right after sign-up, but posting and voting wait for the
+  // confirmation (spec, section 3). The link lives a day; opened on another
+  // device it signs the player in there too.
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    expiresIn: DAY,
+    sendVerificationEmail: ({ user, url }) =>
+      sendVerificationEmail({ to: user.email, nickname: user.name, url }),
+  },
   // Better Auth calls it `name`; for us it is the player's nickname.
   user: { fields: { name: "nickname" } },
   // 30 days, extended at most once a day while the player keeps coming back.
@@ -42,6 +53,15 @@ export const auth = betterAuth({
     // server and e2e, where a Secure cookie would not come back.
     useSecureCookies: env.SITE_URL.startsWith("https://"),
     defaultCookieAttributes: { httpOnly: true, sameSite: "lax" },
+    // Letters after sign-up go out without holding the answer; a failed one
+    // is logged, and the player can ask for it again.
+    backgroundTasks: {
+      handler: (task) => {
+        task.catch((error: unknown) =>
+          console.error("Better Auth background task failed", error),
+        );
+      },
+    },
   },
   // In development the site is also opened by IP from a phone.
   trustedOrigins:
@@ -49,7 +69,14 @@ export const auth = betterAuth({
       ? (request) => [request && `http://${request.headers.get("host")}`]
       : [],
   plugins: [adminPlugin],
-  // Nicknames change through PATCH /api/me with our checks (step 2.7).
-  disabledPaths: [...adminEndpointPaths, "/update-user"],
+  // Our routes with our checks and limits stand in for these:
+  // /api/auth/sign-up and /api/auth/send-verification-email (step 2.4),
+  // nickname changes through PATCH /api/me (step 2.7).
+  disabledPaths: [
+    ...adminEndpointPaths,
+    "/sign-up/email",
+    "/send-verification-email",
+    "/update-user",
+  ],
   telemetry: { enabled: false },
 });
