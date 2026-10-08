@@ -22,4 +22,9 @@ describe("env", () => {
     vi.stubEnv("DATABASE_URL", "mysql://odium:odium@localhost:3306/odium");
     await expect(importEnv()).rejects.toThrow(/DATABASE_URL/);
   });
+
+  it("wants a long secret for sessions", async () => {
+    vi.stubEnv("BETTER_AUTH_SECRET", "short");
+    await expect(importEnv()).rejects.toThrow(/BETTER_AUTH_SECRET/);
+  });
 });

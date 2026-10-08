@@ -10,6 +10,17 @@ export const ru = {
     label: "Основное меню",
     logo: "Odium — на главную",
     games: "Игры",
+    signIn: "Войти",
+  },
+  account: {
+    signInTitle: "Вход",
+    signInSoonTitle: "Вход откроется совсем скоро",
+    signInSoonText:
+      "Скоро здесь можно будет завести аккаунт, чтобы предлагать идеи для игр и голосовать за чужие.",
+    toGames: "К играм",
+    profileTitle: "Профиль",
+    profileSoonTitle: "Профиль почти готов",
+    profileSoonText: "Скоро здесь можно будет сменить ник, пароль и почту.",
   },
   studio: {
     mission:
@@ -112,7 +123,10 @@ export const ru = {
   },
   errors: {
     validation: "Проверьте, что всё заполнено правильно.",
+    unauthorized: "Войдите, чтобы продолжить.",
     forbidden: "Нет доступа.",
+    emailNotVerified:
+      "Сначала подтвердите почту — ссылка в письме, которое мы прислали.",
     notFound: "Ничего не нашлось.",
     rateLimitedMinutes: {
       one: "Слишком часто, попробуйте через {count} минуту.",

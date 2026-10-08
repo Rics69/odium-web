@@ -31,6 +31,7 @@ services:
     environment:
       DATABASE_URL: *database-url
       SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,6 +45,7 @@ services:
     environment:
       DATABASE_URL: *database-url
       SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
     volumes:
       # Images uploaded in the admin (step 4.5).
       - uploads:/app/storage

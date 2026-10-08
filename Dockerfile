@@ -14,6 +14,7 @@ COPY . .
 # values come from compose.yml at runtime.
 ENV SITE_URL=http://localhost:3000 \
     DATABASE_URL=postgres://build:build@localhost:5432/build \
+    BETTER_AUTH_SECRET=build-time-placeholder-never-used-at-runtime \
     NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
