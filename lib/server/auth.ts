@@ -6,9 +6,54 @@ import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { banMessage } from "./ban";
-import { sendPasswordResetEmail, sendVerificationEmail } from "./mail/letters";
+import {
+  sendChangeEmailVerification,
+  sendEmailChangeNotice,
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+} from "./mail/letters";
 
 const DAY = 24 * 60 * 60;
+
+/**
+ * Confirmation letters. A change of address comes here too: its token
+ * carries the new address (updateTo). Then the new address gets "confirm
+ * the new address" and the old one a warning (spec, section 7).
+ */
+async function sendConfirmation({
+  user,
+  url,
+  token,
+}: {
+  user: { name: string; email: string };
+  url: string;
+  token: string;
+}) {
+  const { email: oldEmail, updateTo } = tokenPayload(token);
+  if (!updateTo || !oldEmail) {
+    return sendVerificationEmail({ to: user.email, nickname: user.name, url });
+  }
+  await Promise.all([
+    sendChangeEmailVerification({ to: updateTo, nickname: user.name, url }),
+    sendEmailChangeNotice({
+      to: oldEmail,
+      nickname: user.name,
+      newEmail: updateTo,
+    }),
+  ]);
+}
+
+// The token is Better Auth's signed JWT; reading it is enough here, it is
+// checked when the link is opened.
+function tokenPayload(token: string): { email?: string; updateTo?: string } {
+  try {
+    return JSON.parse(
+      Buffer.from(token.split(".")[1] ?? "", "base64url").toString("utf8"),
+    ) as { email?: string; updateTo?: string };
+  } catch {
+    return {};
+  }
+}
 
 // Roles and bans. Admins act through our own /api/admin/* (phase 4), which
 // writes every action to the log, so the plugin's HTTP endpoints stay
@@ -49,11 +94,11 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     expiresIn: DAY,
-    sendVerificationEmail: ({ user, url }) =>
-      sendVerificationEmail({ to: user.email, nickname: user.name, url }),
+    sendVerificationEmail: sendConfirmation,
   },
   // Better Auth calls it `name`; for us it is the player's nickname.
-  user: { fields: { name: "nickname" } },
+  // A new address takes over only once confirmed (step 2.7).
+  user: { fields: { name: "nickname" }, changeEmail: { enabled: true } },
   // 30 days, extended at most once a day while the player keeps coming back.
   session: { expiresIn: 30 * DAY, updateAge: DAY },
   // One set of limits for the whole site: ours, lib/server/limits.ts.

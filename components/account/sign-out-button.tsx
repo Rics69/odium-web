@@ -29,7 +29,12 @@ export function SignOutButton() {
   }
 
   return (
-    <Button variant="secondary" loading={leaving} onClick={signOut}>
+    <Button
+      variant="secondary"
+      loading={leaving}
+      onClick={signOut}
+      className="self-start"
+    >
       {t("account.signOut")}
     </Button>
   );

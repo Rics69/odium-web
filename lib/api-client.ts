@@ -24,11 +24,20 @@ type ErrorBody = {
 };
 
 /** POSTs JSON to our API; the answer's data, or an ApiRequestError. */
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+export function apiPost<T>(path: string, body: unknown): Promise<T> {
+  return apiSend<T>("POST", path, body);
+}
+
+/** Sends JSON to our API with any changing method. */
+export async function apiSend<T>(
+  method: "POST" | "PATCH" | "DELETE",
+  path: string,
+  body: unknown,
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(path, {
-      method: "POST",
+      method,
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });

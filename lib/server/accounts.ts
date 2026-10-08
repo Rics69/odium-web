@@ -157,16 +157,13 @@ export async function resendVerificationEmail(
 }
 
 /**
- * Signs a player in (spec, section 7). A wrong address and a wrong password
- * get the same answer. Tries are counted per IP + email before the password
- * is checked, so guesses sent at once cannot slip past the limit; the tenth
- * failure locks that pair out for 15 minutes, and a success starts over.
+ * Password guesses of one IP + email pair (spec, section 7), shared by
+ * sign-in and the profile. A try is counted before the password is checked,
+ * so guesses sent at once cannot slip past the limit; the tenth failure
+ * locks the pair out for 15 minutes, and a success starts over.
  */
-export async function signIn(
-  input: SignInInput,
-  request: { headers: Headers; ip: string },
-) {
-  const subject = `${request.ip}|${input.email}`;
+export async function passwordTry(ip: string, email: string) {
+  const subject = `${ip}|${email}`;
   const lockedFor = await lockSecondsLeft("signIn", subject);
   if (lockedFor > 0) {
     throw new ApiError("RATE_LIMITED", { retryAfterSeconds: lockedFor });
@@ -176,14 +173,30 @@ export async function signIn(
     await lock("signIn", subject);
     throw new ApiError("RATE_LIMITED", { retryAfterSeconds: locks.signIn });
   }
+  return {
+    passed: () => resetRateLimit("signInTries", subject),
+    failed: async () => {
+      if (tries.remaining === 0) await lock("signIn", subject);
+    },
+  };
+}
 
+/**
+ * Signs a player in. A wrong address and a wrong password get the same
+ * answer.
+ */
+export async function signIn(
+  input: SignInInput,
+  request: { headers: Headers; ip: string },
+) {
+  const attempt = await passwordTry(request.ip, input.email);
   try {
     const { headers, response } = await auth.api.signInEmail({
       body: { email: input.email, password: input.password },
       headers: request.headers,
       returnHeaders: true,
     });
-    await resetRateLimit("signInTries", subject);
+    await attempt.passed();
     return { user: response.user, cookies: headers.getSetCookie() };
   } catch (error) {
     if (!isAPIError(error)) throw error;
@@ -191,7 +204,7 @@ export async function signIn(
       // The message says why and until when (lib/server/ban.ts).
       throw new ApiError("BANNED", { message: error.body.message });
     }
-    if (tries.remaining === 0) await lock("signIn", subject);
+    await attempt.failed();
     throw new ApiError("INVALID_CREDENTIALS");
   }
 }

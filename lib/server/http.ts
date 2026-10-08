@@ -10,6 +10,10 @@ import { hitRateLimit } from "./rate-limit";
 // (spec, section 9). The site shows `message` as is.
 const errors = {
   VALIDATION_ERROR: { status: 400, message: () => t("errors.validation") },
+  WRONG_PASSWORD: {
+    status: 400,
+    message: () => t("account.profile.wrongPassword"),
+  },
   RESET_LINK_INVALID: {
     status: 400,
     message: () => t("account.reset.linkInvalid"),

@@ -310,6 +310,7 @@ function ButtonSection() {
         <Button>Голосовать</Button>
         <Button variant="secondary">Показать ещё</Button>
         <Button variant="ghost">Отмена</Button>
+        <Button variant="danger">Удалить навсегда</Button>
         <Button disabled>Недоступно</Button>
         <Button
           loading={loading}

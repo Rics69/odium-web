@@ -7,7 +7,7 @@ import { Doodle } from "@/components/doodles/doodle";
 import { spring } from "@/components/motion/presets";
 import { cn } from "@/lib/cn";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const variants: Record<ButtonVariant, string> = {
   primary:
@@ -16,6 +16,9 @@ const variants: Record<ButtonVariant, string> = {
     "border border-line-strong bg-surface text-ink hover:border-ink-3 disabled:border-line disabled:text-ink-3",
   ghost:
     "text-ink hover:bg-ink/5 disabled:text-ink-3 disabled:hover:bg-transparent",
+  // For what cannot be undone, such as deleting the account.
+  danger:
+    "bg-error text-white shadow-sm hover:shadow-md hover:brightness-95 disabled:bg-line disabled:text-ink-3 disabled:shadow-none",
 };
 
 // 44px tall at least (touch target), 12/24px padding, 8px corners — as in the skill.

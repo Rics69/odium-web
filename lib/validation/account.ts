@@ -51,14 +51,16 @@ export const signUpSchema = z.object({
 });
 export type SignUpInput = z.infer<typeof signUpSchema>;
 
-// Only "is there anything": the rules of a new password would tell a
-// guesser what not to try.
+// A password that is already set: only "is there anything", since the
+// rules of a new one would tell a guesser what not to try.
+export const currentPasswordSchema = z
+  .string({ error: t("account.login.passwordRequired") })
+  .min(1, t("account.login.passwordRequired"))
+  .max(PASSWORD_MAX, t("account.login.invalid"));
+
 export const signInSchema = z.object({
   email: emailSchema,
-  password: z
-    .string({ error: t("account.login.passwordRequired") })
-    .min(1, t("account.login.passwordRequired"))
-    .max(PASSWORD_MAX, t("account.login.invalid")),
+  password: currentPasswordSchema,
   next: z.string().optional(),
 });
 export type SignInInput = z.infer<typeof signInSchema>;
@@ -74,4 +76,25 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export const resendVerificationSchema = z.object({
   email: emailSchema,
   next: z.string().optional(),
+});
+
+/** PATCH /api/me: one change at a time. */
+export const profileChangeSchema = z.discriminatedUnion("change", [
+  z.object({ change: z.literal("nickname"), nickname: nicknameSchema }),
+  z.object({
+    change: z.literal("password"),
+    currentPassword: currentPasswordSchema,
+    newPassword: passwordSchema,
+  }),
+  z.object({
+    change: z.literal("email"),
+    email: emailSchema,
+    currentPassword: currentPasswordSchema,
+  }),
+]);
+export type ProfileChange = z.infer<typeof profileChangeSchema>;
+
+/** DELETE /api/me: the password once more. */
+export const deleteAccountSchema = z.object({
+  password: currentPasswordSchema,
 });

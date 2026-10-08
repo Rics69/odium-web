@@ -30,7 +30,7 @@ test("a guest sees «Войти» and no profile", async ({ page }) => {
   });
 
   await page.goto("/profile");
-  await expect(page).toHaveURL("/login");
+  await expect(page).toHaveURL("/login?next=%2Fprofile");
 });
 
 test("a signed-in player sees their nickname in the header", async ({
