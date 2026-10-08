@@ -15,6 +15,13 @@
       "when": 1791373269660,
       "tag": "0001_games_and_studio",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791451048430,
+      "tag": "0002_rate_limits",
+      "breakpoints": true
     }
   ]
 }

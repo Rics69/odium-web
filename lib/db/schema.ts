@@ -7,6 +7,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -59,4 +60,16 @@ export const studioInfo = pgTable(
     updatedAt: updatedAt(),
   },
   (table) => [check("studio_info_single_row", sql`${table.id} = 1`)],
+);
+
+// Request counters in fixed time windows (spec, section 7): one row per
+// limit key and window. Old windows are deleted by a daily job (step 4.8).
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    key: text().notNull(),
+    windowStart: timestamp({ withTimezone: true }).notNull(),
+    count: integer().notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.key, table.windowStart] })],
 );
