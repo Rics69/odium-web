@@ -29,6 +29,7 @@ docker compose up -d --build
 В `.env` — домен, публичный адрес сайта, пароль базы, секрет для cookie сессий и SMTP для писем. На сервере Caddy сам получит для домена сертификат Let's Encrypt. Локально сайт открывается на https://localhost с собственным сертификатом Caddy, поэтому браузер предупредит о нём — для проверки это нормально.
 
 - Тестовые данные: `docker compose run --rm migrate npm run db:seed`, затем `docker compose up -d --force-recreate app` (сайт кэширует прочитанное из базы).
+- Первый админ: `docker compose run --rm migrate npm run create-admin -- --email owner@example.com` — пароль покажется один раз, смените его в профиле.
 - Остановить: `docker compose down` — база и загруженные картинки остаются в томах Docker.
 
 ## Команды
@@ -45,6 +46,7 @@ docker compose up -d --build
 | `npm run db:migrate` | Применить миграции из `drizzle/` |
 | `npm run db:seed` | Тестовые данные: игры и «О студии» (можно запускать повторно) |
 | `npm run db:studio` | Drizzle Studio — просмотр базы в браузере |
+| `npm run create-admin -- --email … [--nickname …]` | Создать админа с подтверждённой почтой и случайным паролем или сделать админом существующего игрока |
 | `npm test` | Юнит-тесты (Vitest), `test:watch` — с перезапуском при изменениях |
 | `npm run test:e2e` | E2E-тесты (Playwright) |
 

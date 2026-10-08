@@ -16,7 +16,7 @@ export const PASSWORD_MAX = 128;
 
 // Letters of one alphabet only: a Cyrillic «а» inside a Latin nickname
 // would make a lookalike of someone else's.
-export const nicknameSchema = z
+export const nicknameFormatSchema = z
   .string({ error: t("account.errors.nicknameRequired") })
   .trim()
   .min(NICKNAME_MIN, t("account.errors.nicknameShort"))
@@ -25,11 +25,13 @@ export const nicknameSchema = z
   .refine(
     (nickname) => !(LATIN.test(nickname) && CYRILLIC.test(nickname)),
     t("account.errors.nicknameMixed"),
-  )
-  .refine(
-    (nickname) => !isReservedNickname(nickname),
-    t("account.errors.nicknameReserved"),
   );
+
+/** A player's nickname: the studio's names are kept for the admins. */
+export const nicknameSchema = nicknameFormatSchema.refine(
+  (nickname) => !isReservedNickname(nickname),
+  t("account.errors.nicknameReserved"),
+);
 
 export const emailSchema = z
   .string({ error: t("account.errors.emailInvalid") })

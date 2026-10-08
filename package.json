@@ -18,7 +18,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "db:seed": "tsx --conditions=react-server scripts/seed.ts"
+    "db:seed": "tsx --conditions=react-server scripts/seed.ts",
+    "create-admin": "tsx --conditions=react-server scripts/create-admin.ts"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",
