@@ -50,6 +50,13 @@
       "when": 1791537066535,
       "tag": "0006_wish_board",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791558577765,
+      "tag": "0007_similar_titles_index",
+      "breakpoints": true
     }
   ]
 }

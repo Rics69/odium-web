@@ -14,12 +14,14 @@ import { boardSearch } from "@/lib/board-url";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import type { BoardPage } from "@/lib/server/board";
+import type { WishView } from "@/lib/server/wishes";
 import {
   wishStatuses,
   type BoardQuery,
   type BoardSort,
 } from "@/lib/validation/wishes";
 import { BoardProvider, useBoard, type Viewer } from "./board-context";
+import { NewWishDialog } from "./new-wish-dialog";
 import { statusLabel, WishCard } from "./wish-card";
 
 const SEARCH_PAUSE_MS = 350;
@@ -121,7 +123,16 @@ function BoardView({
 
   return (
     <div className="flex flex-col gap-6">
-      <BoardActions wishesOpen={wishesOpen} />
+      <BoardActions
+        slug={slug}
+        wishesOpen={wishesOpen}
+        onCreated={(wish) =>
+          setPages((current) => ({
+            ...current,
+            wishes: [wish, ...current.wishes.filter((w) => w.id !== wish.id)],
+          }))
+        }
+      />
       <div className="flex flex-col gap-4">
         {/* On a phone the four sorts scroll sideways instead of wrapping. */}
         <div className="-mx-4 [scrollbar-width:none] overflow-x-auto px-4 md:mx-0 md:px-0">
@@ -293,26 +304,46 @@ function Toggle({
 }
 
 /**
- * Above the list: what this player can do here. A guest gets the button
- * that asks to sign in; an unconfirmed player a word about the email; a
- * closed board says so. The form itself arrives in step 3.6.
+ * Above the list: what this player can do here. A confirmed player writes
+ * a new wish; a guest gets the button that asks to sign in; an unconfirmed
+ * player a word about the email; a closed board says so.
  */
-function BoardActions({ wishesOpen }: { wishesOpen: boolean }) {
+function BoardActions({
+  slug,
+  wishesOpen,
+  onCreated,
+}: {
+  slug: string;
+  wishesOpen: boolean;
+  onCreated: (wish: WishView) => void;
+}) {
   const { viewer, askToSignIn } = useBoard();
+  const [writing, setWriting] = useState(false);
   if (!wishesOpen) {
     return <Note>{t("board.closed")}</Note>;
   }
-  if (!viewer.signedIn) {
-    return (
-      <Button doodle onClick={askToSignIn} className="self-start">
-        {t("board.newWish")}
-      </Button>
-    );
-  }
-  if (!viewer.verified) {
+  if (viewer.signedIn && !viewer.verified) {
     return <Note>{t("board.verifyFirst")}</Note>;
   }
-  return null;
+  return (
+    <>
+      <Button
+        doodle
+        onClick={viewer.signedIn ? () => setWriting(true) : askToSignIn}
+        className="self-start"
+      >
+        {t("board.newWish")}
+      </Button>
+      {viewer.signedIn && (
+        <NewWishDialog
+          slug={slug}
+          open={writing}
+          onOpenChange={setWriting}
+          onCreated={onCreated}
+        />
+      )}
+    </>
+  );
 }
 
 function Note({ children }: { children: React.ReactNode }) {

@@ -63,6 +63,32 @@ const likePattern = (text: string) =>
 
 export type BoardPage = { wishes: WishView[]; nextCursor: string | null };
 
+function toView({
+  wish,
+  author,
+  votedByMe,
+}: {
+  wish: typeof wishes.$inferSelect;
+  author: string | null;
+  votedByMe: boolean;
+}): WishView {
+  return {
+    id: wish.id,
+    gameId: wish.gameId,
+    type: wish.type,
+    title: wish.title,
+    body: wish.body,
+    status: wish.status,
+    studioReply: wish.studioReply,
+    doneVersion: wish.doneVersion,
+    votesCount: wish.votesCount,
+    votedByMe,
+    hidden: wish.hidden,
+    author: author === null ? null : { nickname: author },
+    createdAt: wish.createdAt.toISOString(),
+  };
+}
+
 /**
  * A page of a game's board (spec, section 5): 20 wishes after the cursor.
  * Keyset pagination: each page continues from the last keys of the one
@@ -219,21 +245,7 @@ export async function listWishes(
   }
 
   return {
-    wishes: page.map(({ wish, author, votedByMe }) => ({
-      id: wish.id,
-      gameId: wish.gameId,
-      type: wish.type,
-      title: wish.title,
-      body: wish.body,
-      status: wish.status,
-      studioReply: wish.studioReply,
-      doneVersion: wish.doneVersion,
-      votesCount: wish.votesCount,
-      votedByMe,
-      hidden: wish.hidden,
-      author: author === null ? null : { nickname: author },
-      createdAt: wish.createdAt.toISOString(),
-    })),
+    wishes: page.map(toView),
     nextCursor,
   };
 }
@@ -250,4 +262,45 @@ export async function findBoardGame(slug: string) {
     .from(games)
     .where(and(eq(games.slug, slug), eq(games.published, true)));
   return game ?? null;
+}
+
+export const SIMILAR_LIMIT = 3;
+
+/**
+ * Up to 3 wishes of the game whose titles look like the one being typed
+ * (spec, section 5): trigram similarity, closest first. Every
+ * status counts, a done wish is worth knowing about; hidden and deleted
+ * ones do not show.
+ */
+export async function findSimilarWishes(
+  gameId: string,
+  text: string,
+  viewerId: string | null,
+): Promise<WishView[]> {
+  const myVote = db
+    .select({ wishId: votes.wishId })
+    .from(votes)
+    .where(eq(votes.userId, viewerId ?? sql`null::uuid`))
+    .as("my_vote");
+  const rows = await db
+    .select({
+      wish: wishes,
+      author: user.nickname,
+      votedByMe: sql<boolean>`${myVote.wishId} is not null`,
+    })
+    .from(wishes)
+    .leftJoin(user, eq(user.id, wishes.authorId))
+    .leftJoin(myVote, eq(myVote.wishId, wishes.id))
+    .where(
+      and(
+        eq(wishes.gameId, gameId),
+        eq(wishes.hidden, false),
+        isNull(wishes.deletedAt),
+        sql`${wishes.title} % ${text}`,
+      ),
+    )
+    // Trigram distance: the GiST index gives the closest ones first.
+    .orderBy(sql`${wishes.title} <-> ${text}`)
+    .limit(SIMILAR_LIMIT);
+  return rows.map(toView);
 }

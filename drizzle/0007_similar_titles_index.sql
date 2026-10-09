@@ -1,0 +1,1 @@
+CREATE INDEX "wishes_title_gist_idx" ON "wishes" USING gist ("title" gist_trgm_ops);

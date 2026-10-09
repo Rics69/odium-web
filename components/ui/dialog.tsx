@@ -13,6 +13,8 @@ type DialogContentProps = {
   description?: ReactNode;
   closeLabel: string;
   children?: ReactNode;
+  // A whole screen on phones, for forms; a wider card from 768px.
+  fullScreenOnPhone?: boolean;
   className?: string;
 };
 
@@ -23,6 +25,7 @@ export function DialogContent({
   description,
   closeLabel,
   children,
+  fullScreenOnPhone = false,
   className,
 }: DialogContentProps) {
   return (
@@ -30,15 +33,20 @@ export function DialogContent({
       <RadixDialog.Overlay className="fixed inset-0 z-50 grid place-items-end overflow-y-auto bg-ink/40 data-[state=closed]:animate-overlay-out data-[state=open]:animate-overlay-in md:place-items-center md:p-6">
         <RadixDialog.Content
           className={cn(
-            "relative w-full rounded-t-lg bg-surface p-6 pb-8 shadow-md md:max-w-md md:rounded-lg md:pb-6",
+            "relative w-full bg-surface p-6 pb-8 shadow-md md:rounded-lg md:pb-6",
+            fullScreenOnPhone
+              ? "min-h-dvh md:min-h-0 md:max-w-xl"
+              : "rounded-t-lg md:max-w-md",
             "data-[state=closed]:animate-sheet-out data-[state=open]:animate-sheet-in md:data-[state=closed]:animate-pop-out md:data-[state=open]:animate-pop-in",
             className,
           )}
         >
-          <div
-            aria-hidden
-            className="mx-auto mb-6 h-1 w-10 rounded-full bg-line md:hidden"
-          />
+          {!fullScreenOnPhone && (
+            <div
+              aria-hidden
+              className="mx-auto mb-6 h-1 w-10 rounded-full bg-line md:hidden"
+            />
+          )}
           <RadixDialog.Title className="pr-12 font-display text-h3">
             {title}
           </RadixDialog.Title>
