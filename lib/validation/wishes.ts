@@ -64,3 +64,22 @@ export const wishInputSchema = z
     }
   });
 export type WishInput = z.infer<typeof wishInputSchema>;
+
+export const boardSorts = ["top", "new", "trending", "old"] as const;
+export type BoardSort = (typeof boardSorts)[number];
+
+/**
+ * The board's choices, as they sit in the address (spec, section 5):
+ * ?sort=top&type=add&status=planned&q=…&mine=1&voted=1. Without `status`
+ * the board hides done and declined wishes; status=all shows everything.
+ */
+export const boardQuerySchema = z.object({
+  sort: z.enum(boardSorts).default("top"),
+  type: z.enum(wishTypes).optional(),
+  status: z.union([z.enum(wishStatuses), z.literal("all")]).optional(),
+  q: z.string().trim().max(100).optional(),
+  mine: z.literal("1").optional(),
+  voted: z.literal("1").optional(),
+  cursor: z.string().max(500).optional(),
+});
+export type BoardQuery = z.infer<typeof boardQuerySchema>;

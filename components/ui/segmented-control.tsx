@@ -12,6 +12,8 @@ type SegmentedControlProps<T extends string> = {
   options: Option<T>[];
   value: T;
   onChange: (value: T) => void;
+  // One line whatever the width: the parent scrolls it sideways.
+  nowrap?: boolean;
   className?: string;
 };
 
@@ -22,6 +24,7 @@ export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  nowrap = false,
   className,
 }: SegmentedControlProps<T>) {
   const id = useId();
@@ -29,7 +32,8 @@ export function SegmentedControl<T extends string>({
   return (
     <fieldset
       className={cn(
-        "inline-flex flex-wrap rounded-md border border-line bg-paper p-1",
+        "inline-flex rounded-md border border-line bg-paper p-1",
+        nowrap ? "flex-nowrap whitespace-nowrap" : "flex-wrap",
         className,
       )}
     >
@@ -40,7 +44,7 @@ export function SegmentedControl<T extends string>({
           <label
             key={option.value}
             className={cn(
-              "relative flex min-h-11 cursor-pointer items-center justify-center rounded-sm px-4 text-sm font-medium transition-colors",
+              "relative flex min-h-11 cursor-pointer items-center justify-center rounded-sm px-3 text-sm font-medium transition-colors md:px-4",
               "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent",
               checked ? "text-ink" : "text-ink-2 hover:text-ink",
             )}
