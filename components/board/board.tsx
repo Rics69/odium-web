@@ -21,8 +21,9 @@ import {
   type BoardSort,
 } from "@/lib/validation/wishes";
 import { BoardProvider, useBoard, type Viewer } from "./board-context";
-import { NewWishDialog } from "./new-wish-dialog";
-import { statusLabel, WishCard } from "./wish-card";
+import { NewWishDialog } from "./wish-form-dialog";
+import { statusLabel } from "@/lib/wish-labels";
+import { WishCard } from "./wish-card";
 
 const SEARCH_PAUSE_MS = 350;
 
@@ -255,7 +256,7 @@ function BoardView({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <WishCard wish={wish} />
+                  <WishCard wish={wish} slug={slug} />
                 </motion.li>
               ))}
             </AnimatePresence>

@@ -40,6 +40,11 @@ const errors = {
     message: () => t("wishes.errors.duplicate"),
   },
   WISHES_CLOSED: { status: 409, message: () => t("wishes.errors.closed") },
+  EDIT_CLOSED: { status: 409, message: () => t("wishes.errors.editClosed") },
+  DELETE_CLOSED: {
+    status: 409,
+    message: () => t("wishes.errors.deleteClosed"),
+  },
   VOTING_CLOSED: {
     status: 409,
     message: () => t("wishes.errors.votingClosed"),

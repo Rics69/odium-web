@@ -23,24 +23,42 @@ async function signUp(
   return player;
 }
 
+// Desktop and phone run at once: each votes for its own seeded wish, so
+// neither sees the other's vote.
+const target = {
+  desktop: {
+    title: "Звук поливки",
+    before: /: 1 голос$/,
+    after: /: 2 голоса$/,
+  },
+  mobile: {
+    title: "Сад на рабочем столе",
+    before: /: 2 голоса$/,
+    after: /: 3 голоса$/,
+  },
+};
+
 test("a confirmed player votes at once, and the vote stays", async ({
   page,
   baseURL,
-}) => {
+}, testInfo) => {
+  const wish = target[testInfo.project.name as keyof typeof target];
   await signUp(page, baseURL!, { confirm: true });
   await page.goto("/games/neon-garden/wishes");
 
-  const vote = page.getByRole("button", { name: /Голос за «Звук поливки»/ });
+  const vote = page.getByRole("button", {
+    name: new RegExp(`Голос за «${wish.title}»`),
+  });
   await expect(vote).toHaveAttribute("aria-pressed", "false");
-  await expect(vote).toHaveAccessibleName(/1 голос$/);
+  await expect(vote).toHaveAccessibleName(wish.before);
   await vote.click();
   await expect(vote).toHaveAttribute("aria-pressed", "true");
-  await expect(vote).toHaveAccessibleName(/2 голоса$/);
+  await expect(vote).toHaveAccessibleName(wish.after);
 
   await page.reload();
   await expect(vote).toHaveAttribute("aria-pressed", "true");
   await vote.click();
-  await expect(vote).toHaveAccessibleName(/1 голос$/);
+  await expect(vote).toHaveAccessibleName(wish.before);
 });
 
 test("an unconfirmed player reads why the buttons are closed", async ({

@@ -16,10 +16,11 @@ import {
   TITLE_MAX,
   TITLE_MIN,
   wishInputSchema,
+  type WishInput,
   type WishType,
 } from "@/lib/validation/wishes";
 import { VoteButton } from "./vote-button";
-import { statusLabel } from "./wish-card";
+import { statusLabel } from "@/lib/wish-labels";
 
 const SIMILAR_PAUSE_MS = 400;
 const CLOSE_MS = 300;
@@ -27,38 +28,51 @@ const CLOSE_MS = 300;
 type Errors = Partial<Record<"type" | "title" | "body", string>>;
 
 /**
- * The new wish form (spec, section 5): a whole screen on phones. While the
- * title is typed, up to three similar wishes slide in below it with their
- * vote buttons: often the idea is there already.
+ * The wish form (spec, section 5): a whole screen on phones. For a new
+ * wish, up to three similar ones slide in below the title while it is
+ * typed, with their vote buttons: often the idea is there already. The
+ * author's edit uses the same form, filled in.
  */
-export function NewWishDialog({
+export function WishFormDialog({
   slug,
   open,
   onOpenChange,
-  onCreated,
+  heading,
+  description,
+  submitLabel,
+  initial,
+  showSimilar,
+  send,
+  onDone,
 }: {
   slug: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (wish: WishView) => void;
+  heading: string;
+  description?: string;
+  submitLabel: string;
+  initial?: WishInput;
+  showSimilar: boolean;
+  send: (input: WishInput) => Promise<WishView>;
+  onDone: (wish: WishView) => void;
 }) {
-  const toast = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [type, setType] = useState<WishType>("add");
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const [type, setType] = useState<WishType>(initial?.type ?? "add");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [body, setBody] = useState(initial?.body ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [similar, setSimilar] = useState<WishView[]>([]);
 
   // Too short a title shows none; the last answer stays hidden meanwhile.
-  const shownSimilar = title.trim().length >= TITLE_MIN ? similar : [];
+  const shownSimilar =
+    showSimilar && title.trim().length >= TITLE_MIN ? similar : [];
 
   // Similar wishes after a pause in typing; an older answer never wins.
   useEffect(() => {
     const text = title.trim();
-    if (text.length < TITLE_MIN) return;
+    if (!showSimilar || text.length < TITLE_MIN) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
       fetch(`/api/games/${slug}/wishes/similar?q=${encodeURIComponent(text)}`, {
@@ -72,12 +86,12 @@ export function NewWishDialog({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [slug, title]);
+  }, [showSimilar, slug, title]);
 
   function reset() {
-    setType("add");
-    setTitle("");
-    setBody("");
+    setType(initial?.type ?? "add");
+    setTitle(initial?.title ?? "");
+    setBody(initial?.body ?? "");
     setErrors({});
     setFormError(null);
     setSimilar([]);
@@ -103,20 +117,12 @@ export function NewWishDialog({
 
     setSending(true);
     try {
-      const { wish } = await apiPost<{ wish: WishView }>(
-        `/api/games/${slug}/wishes`,
-        parsed.data,
-      );
+      const wish = await send(parsed.data);
       onOpenChange(false);
       // After the closing animation; a dialog closed by accident keeps its
       // draft.
       setTimeout(reset, CLOSE_MS);
-      if (wish.hidden) {
-        toast({ title: t("board.form.flagged") });
-      } else {
-        onCreated(wish);
-        toast({ title: t("board.form.published"), tone: "success" });
-      }
+      onDone(wish);
     } catch (error) {
       if (
         error instanceof ApiRequestError &&
@@ -139,8 +145,8 @@ export function NewWishDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         fullScreenOnPhone
-        title={t("board.form.title")}
-        description={t("board.form.description")}
+        title={heading}
+        description={description}
         closeLabel={t("common.close")}
       >
         <form
@@ -247,10 +253,48 @@ export function NewWishDialog({
             </p>
           )}
           <Button type="submit" doodle loading={sending} className="self-start">
-            {t("board.form.submit")}
+            {submitLabel}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** A new wish on the board; it slides into the list unless hidden. */
+export function NewWishDialog({
+  slug,
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  slug: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (wish: WishView) => void;
+}) {
+  const toast = useToast();
+  return (
+    <WishFormDialog
+      slug={slug}
+      open={open}
+      onOpenChange={onOpenChange}
+      heading={t("board.form.title")}
+      description={t("board.form.description")}
+      submitLabel={t("board.form.submit")}
+      showSimilar
+      send={async (input) =>
+        (await apiPost<{ wish: WishView }>(`/api/games/${slug}/wishes`, input))
+          .wish
+      }
+      onDone={(wish) => {
+        if (wish.hidden) {
+          toast({ title: t("board.form.flagged") });
+        } else {
+          onCreated(wish);
+          toast({ title: t("board.form.published"), tone: "success" });
+        }
+      }}
+    />
   );
 }

@@ -1,23 +1,12 @@
 "use client";
 
+import type { Route } from "next";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { formatRelativeTime, t } from "@/lib/i18n";
+import { statusLabel, typeLabel } from "@/lib/wish-labels";
 import type { WishView } from "@/lib/server/wishes";
 import { VoteButton } from "./vote-button";
-
-export const typeLabel = {
-  add: "wishType.add",
-  remove: "wishType.remove",
-} as const;
-
-export const statusLabel = {
-  new: "wishStatus.new",
-  review: "wishStatus.review",
-  planned: "wishStatus.planned",
-  in_progress: "wishStatus.in_progress",
-  done: "wishStatus.done",
-  declined: "wishStatus.declined",
-} as const;
 
 const statusTone = {
   new: "neutral",
@@ -29,7 +18,7 @@ const statusTone = {
 } as const;
 
 /** A wish on the board: votes, labels, title, two lines, author and time. */
-export function WishCard({ wish }: { wish: WishView }) {
+export function WishCard({ wish, slug }: { wish: WishView; slug: string }) {
   const closed = wish.status === "done" || wish.status === "declined";
   return (
     <article className="flex gap-4 rounded-lg border border-line bg-surface p-4 md:gap-6 md:p-6">
@@ -53,7 +42,14 @@ export function WishCard({ wish }: { wish: WishView }) {
             <Badge tone="accent">{t("board.studioReply")}</Badge>
           )}
         </div>
-        <h3 className="text-lg font-semibold break-words">{wish.title}</h3>
+        <h3 className="text-lg font-semibold break-words">
+          <Link
+            href={`/games/${slug}/wishes/${wish.id}` as Route}
+            className="transition-colors hover:text-accent"
+          >
+            {wish.title}
+          </Link>
+        </h3>
         {wish.body && (
           <p className="line-clamp-2 break-words whitespace-pre-line text-ink-2">
             {wish.body}

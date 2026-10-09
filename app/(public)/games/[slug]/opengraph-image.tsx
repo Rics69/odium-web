@@ -5,18 +5,13 @@ import { connection } from "next/server";
 import sharp from "sharp";
 import { t } from "@/lib/i18n";
 import { getPublishedGame } from "@/lib/server/games";
+import { OG_DISPLAY, OG_TEXT, ogFonts } from "@/lib/server/og";
 
 // The picture a link to the game shows in messengers and social networks.
 
 export const alt = t("game.ogAlt");
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
-const fontsDir = join(process.cwd(), "assets/fonts");
-
-async function font(file: string) {
-  return readFile(join(fontsDir, file));
-}
 
 // Local covers come from public/, uploaded ones by URL; the picture is turned
 // into a PNG data URL because the renderer reads only a few formats.
@@ -40,14 +35,6 @@ export default async function OpenGraphImage({
   const game = await getPublishedGame((await params).slug);
   const cover = game?.coverUrl ? await coverDataUrl(game.coverUrl) : null;
 
-  const [unboundedLatin, unboundedCyrillic, interLatin, interCyrillic] =
-    await Promise.all([
-      font("unbounded-latin-600-normal.woff"),
-      font("unbounded-cyrillic-600-normal.woff"),
-      font("inter-latin-400-normal.woff"),
-      font("inter-cyrillic-400-normal.woff"),
-    ]);
-
   return new ImageResponse(
     <div
       style={{
@@ -57,7 +44,7 @@ export default async function OpenGraphImage({
         background: "#f7f3eb",
         color: "#1c1a17",
         padding: 64,
-        fontFamily: "Inter Cyrillic, Inter Latin",
+        fontFamily: OG_TEXT,
       }}
     >
       <div
@@ -74,7 +61,7 @@ export default async function OpenGraphImage({
         <div
           style={{
             marginTop: 40,
-            fontFamily: "Unbounded Cyrillic, Unbounded Latin",
+            fontFamily: OG_DISPLAY,
             fontSize: game && game.title.length > 14 ? 64 : 80,
             lineHeight: 1.05,
           }}
@@ -120,12 +107,7 @@ export default async function OpenGraphImage({
     </div>,
     {
       ...size,
-      fonts: [
-        { name: "Unbounded Latin", data: unboundedLatin, weight: 600 },
-        { name: "Unbounded Cyrillic", data: unboundedCyrillic, weight: 600 },
-        { name: "Inter Latin", data: interLatin, weight: 400 },
-        { name: "Inter Cyrillic", data: interCyrillic, weight: 400 },
-      ],
+      fonts: await ogFonts(),
     },
   );
 }
