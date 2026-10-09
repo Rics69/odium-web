@@ -35,6 +35,11 @@ const errors = {
     message: () => t("account.errors.nicknameTaken"),
   },
   EMAIL_TAKEN: { status: 409, message: () => t("account.errors.emailTaken") },
+  DUPLICATE_WISH: {
+    status: 409,
+    message: () => t("wishes.errors.duplicate"),
+  },
+  WISHES_CLOSED: { status: 409, message: () => t("wishes.errors.closed") },
   EMAIL_ALREADY_VERIFIED: {
     status: 409,
     message: () => t("errors.emailAlreadyVerified"),
