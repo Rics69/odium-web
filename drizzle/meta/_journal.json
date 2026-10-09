@@ -43,6 +43,13 @@
       "when": 1791471359724,
       "tag": "0005_blocked_email_domains_list",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791537066535,
+      "tag": "0006_wish_board",
+      "breakpoints": true
     }
   ]
 }

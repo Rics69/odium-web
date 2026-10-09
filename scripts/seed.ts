@@ -7,7 +7,7 @@ import nextEnv from "@next/env";
 nextEnv.loadEnvConfig(process.cwd(), true);
 
 const { db, pool } = await import("@/lib/db");
-const { seedDatabase, testGames } = await import("./seed-data");
+const { seedDatabase, testGames, testWishes } = await import("./seed-data");
 
 await seedDatabase(db);
 
@@ -30,7 +30,7 @@ const revalidated = await fetch(
 );
 
 console.log(
-  `Seeded ${testGames.length} games (${testGames.filter((g) => g.published).length} published) and the studio info.`,
+  `Seeded ${testGames.length} games (${testGames.filter((g) => g.published).length} published), ${testWishes.length} wishes with votes and the studio info.`,
   revalidated ? "The running dev server dropped its cache." : "",
 );
 await pool.end();

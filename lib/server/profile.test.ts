@@ -6,8 +6,11 @@ import { GET } from "@/app/api/auth/[...all]/route";
 import { db } from "@/lib/db";
 import {
   blockedEmailDomains,
+  games,
   session as sessions,
   user as users,
+  votes,
+  wishes,
 } from "@/lib/db/schema";
 import { countLetters, findLetter } from "@/test/mailpit";
 import { signIn } from "./accounts";
@@ -232,5 +235,57 @@ describe("deleting the account", () => {
     expect(await db.$count(users)).toBe(0);
     expect(await db.$count(sessions)).toBe(0);
     expect(cookies.join(";")).toMatch(/odium\.session_token=;.*Max-Age=0/);
+  });
+
+  it("takes the votes away from the counters and leaves the wishes", async () => {
+    const author = await signedInPlayer();
+    const { user, request } = await signedInPlayer();
+    const [game] = await db
+      .insert(games)
+      .values({ slug: "village", title: "Village" })
+      .returning({ id: games.id });
+    const [theirs] = await db
+      .insert(wishes)
+      .values({
+        gameId: game!.id,
+        authorId: author.user.id,
+        type: "add",
+        title: "Больше уровней",
+        titleNormalized: "больше уровней",
+        votesCount: 2,
+      })
+      .returning({ id: wishes.id });
+    const [mine] = await db
+      .insert(wishes)
+      .values({
+        gameId: game!.id,
+        authorId: user.id,
+        type: "remove",
+        title: "Убрать рекламу",
+        titleNormalized: "убрать рекламу",
+        votesCount: 1,
+      })
+      .returning({ id: wishes.id });
+    await db.insert(votes).values([
+      { wishId: theirs!.id, userId: author.user.id },
+      { wishId: theirs!.id, userId: user.id },
+      { wishId: mine!.id, userId: user.id },
+    ]);
+
+    await deleteAccount(user, PASSWORD, request);
+
+    const rows = await db
+      .select({
+        id: wishes.id,
+        authorId: wishes.authorId,
+        votesCount: wishes.votesCount,
+      })
+      .from(wishes);
+    expect(rows).toEqual(
+      expect.arrayContaining([
+        { id: theirs!.id, authorId: author.user.id, votesCount: 1 },
+        { id: mine!.id, authorId: null, votesCount: 0 },
+      ]),
+    );
   });
 });

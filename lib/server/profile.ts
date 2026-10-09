@@ -2,13 +2,14 @@ import "server-only";
 import { isAPIError } from "better-auth/api";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { user as users } from "@/lib/db/schema";
+import { user as users, votes } from "@/lib/db/schema";
 import { t } from "@/lib/i18n";
 import { isDisposableEmail, passwordTry } from "./accounts";
 import { auth } from "./auth";
 import { ApiError } from "./http";
 import { hitRateLimit } from "./rate-limit";
 import type { CurrentUser } from "./session";
+import { recountVotes } from "./votes";
 
 // The profile (step 2.7). Everything but the nickname asks for the password
 // again, and those checks share the sign-in limit: a stolen session must
@@ -134,9 +135,9 @@ export async function changeEmail(
 }
 
 /**
- * Deletes the account with its sessions and sign-in methods (spec, "Мои
- * решения"). From step 3.1 its votes go with it and the counters are
- * recounted, while its wishes stay, signed «Удалённый пользователь».
+ * Deletes the account with its sessions, sign-in methods and votes (spec,
+ * "Мои решения"); the wishes it voted for are recounted in the same
+ * transaction. Its wishes stay, with no author: «Удалённый пользователь».
  * Returns the cookie that ends the session in this browser.
  */
 export async function deleteAccount(
@@ -149,6 +150,16 @@ export async function deleteAccount(
     headers: request.headers,
     returnHeaders: true,
   });
-  await db.delete(users).where(eq(users.id, user.id));
+  await db.transaction(async (tx) => {
+    const voted = await tx
+      .select({ wishId: votes.wishId })
+      .from(votes)
+      .where(eq(votes.userId, user.id));
+    await tx.delete(users).where(eq(users.id, user.id));
+    await recountVotes(
+      tx,
+      voted.map((vote) => vote.wishId),
+    );
+  });
   return headers.getSetCookie();
 }

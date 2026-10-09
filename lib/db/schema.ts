@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   check,
   date,
@@ -161,4 +162,110 @@ export const verification = pgTable(
 // A domain also blocks its subdomains. Edited in the admin (step 4.6).
 export const blockedEmailDomains = pgTable("blocked_email_domains", {
   domain: text().primaryKey(),
+});
+
+// The wish board (spec, sections 5 and 8; step 3.1).
+
+export const wishType = pgEnum("wish_type", ["add", "remove"]);
+
+export const wishStatus = pgEnum("wish_status", [
+  "new",
+  "review",
+  "planned",
+  "in_progress",
+  "done",
+  "declined",
+]);
+
+// Why a wish is hidden. "flagged": a stop word hid it on creation, and it
+// waits in the admin's "На проверку" filter.
+export const wishHiddenReason = pgEnum("wish_hidden_reason", [
+  "spam",
+  "abuse",
+  "off_topic",
+  "duplicate",
+  "other",
+  "flagged",
+]);
+
+export const wishes = pgTable(
+  "wishes",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    // A game with wishes cannot be deleted, only unpublished.
+    gameId: uuid()
+      .notNull()
+      .references(() => games.id, { onDelete: "restrict" }),
+    // Empty once the author deletes the account: «Удалённый пользователь».
+    authorId: uuid().references(() => user.id, { onDelete: "set null" }),
+    type: wishType().notNull(),
+    title: text().notNull(),
+    // Lowercase, ё → е, single spaces (lib/wishes.ts): the same wish twice
+    // from one author is refused by the unique index below.
+    titleNormalized: text().notNull(),
+    body: text().notNull().default(""),
+    status: wishStatus().notNull().default("new"),
+    studioReply: text(),
+    doneVersion: text(),
+    // Changed only together with `votes`, in one transaction.
+    votesCount: integer().notNull().default(0),
+    hidden: boolean().notNull().default(false),
+    hiddenReason: wishHiddenReason(),
+    // A duplicate points to its original after a merge (step 4.3).
+    mergedIntoId: uuid().references((): AnyPgColumn => wishes.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: updatedAt(),
+    // Soft delete; a daily job removes it for good after 30 days (step 4.8).
+    deletedAt: timestamp({ withTimezone: true }),
+  },
+  (table) => [
+    // DESC NULLS FIRST is what a plain ORDER BY … DESC means in Postgres;
+    // the board's queries match it and read the index in order.
+    index("wishes_board_top_idx").on(
+      table.gameId,
+      table.hidden,
+      table.votesCount.desc().nullsFirst(),
+      table.createdAt.desc().nullsFirst(),
+    ),
+    index("wishes_board_new_idx").on(
+      table.gameId,
+      table.hidden,
+      table.createdAt.desc().nullsFirst(),
+    ),
+    index("wishes_title_trgm_idx").using("gin", table.title.op("gin_trgm_ops")),
+    index("wishes_author_idx").on(table.authorId),
+    uniqueIndex("wishes_author_game_title_key")
+      .on(table.authorId, table.gameId, table.titleNormalized)
+      .where(sql`${table.deletedAt} is null`),
+    check("wishes_votes_count_non_negative", sql`${table.votesCount} >= 0`),
+  ],
+);
+
+// One vote per player per wish: the primary key makes a second impossible.
+export const votes = pgTable(
+  "votes",
+  {
+    wishId: uuid()
+      .notNull()
+      .references(() => wishes.id, { onDelete: "cascade" }),
+    userId: uuid()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.wishId, table.userId] }),
+    index("votes_user_idx").on(table.userId),
+    // "В тренде": votes of the last 7 days.
+    index("votes_wish_created_idx").on(table.wishId, table.createdAt),
+  ],
+);
+
+// Words that hide a new wish until an admin looks (spec, section 7).
+// Stored lowercase; edited in the admin (step 4.6).
+export const stopWords = pgTable("stop_words", {
+  id: uuid().primaryKey().defaultRandom(),
+  word: text().notNull().unique(),
 });

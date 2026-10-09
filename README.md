@@ -44,8 +44,9 @@ docker compose up -d --build
 | `npm run services:up`, `services:down` | Запустить и остановить PostgreSQL и Mailpit в Docker |
 | `npm run db:generate` | Создать миграцию по изменениям схемы в `lib/db/schema.ts` |
 | `npm run db:migrate` | Применить миграции из `drizzle/` |
-| `npm run db:seed` | Тестовые данные: игры и «О студии» (можно запускать повторно) |
+| `npm run db:seed` | Тестовые данные: игры, «О студии», игроки и пожелания с голосами (можно запускать повторно) |
 | `npm run db:studio` | Drizzle Studio — просмотр базы в браузере |
+| `npm run db:generate-wishes` | 10 000 пожеланий с голосами на «Неоновом саде» для замеров скорости; `-- --clean` убирает их |
 | `npm run create-admin -- --email … [--nickname …]` | Создать админа с подтверждённой почтой и случайным паролем или сделать админом существующего игрока |
 | `npm test` | Юнит-тесты (Vitest), `test:watch` — с перезапуском при изменениях |
 | `npm run test:e2e` | E2E-тесты (Playwright) |
