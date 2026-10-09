@@ -66,11 +66,23 @@ test("choices live in the address and survive a reload", async ({ page }) => {
   await expect(titles(page)).toHaveCount(5);
 });
 
-test("a guest who votes is sent to sign in and back", async ({ page }) => {
+test("a guest who votes is asked to sign in and comes back", async ({
+  page,
+}) => {
   await page.goto("/games/derevnya-slov/wishes?sort=new");
 
   await page.getByRole("button", { name: /Голос за «Тёмная тема»/ }).click();
-
+  const dialog = page.getByRole("dialog", {
+    name: "Войдите, чтобы голосовать и предлагать идеи",
+  });
+  await expect(dialog).toBeVisible();
+  await expect(
+    dialog.getByRole("link", { name: "Зарегистрироваться" }),
+  ).toHaveAttribute(
+    "href",
+    "/register?next=%2Fgames%2Fderevnya-slov%2Fwishes%3Fsort%3Dnew",
+  );
+  await dialog.getByRole("link", { name: "Войти" }).click();
   await expect(page).toHaveURL(
     "/login?next=%2Fgames%2Fderevnya-slov%2Fwishes%3Fsort%3Dnew",
   );

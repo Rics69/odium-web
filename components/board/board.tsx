@@ -19,7 +19,7 @@ import {
   type BoardQuery,
   type BoardSort,
 } from "@/lib/validation/wishes";
-import type { Viewer } from "./vote-button";
+import { BoardProvider, useBoard, type Viewer } from "./board-context";
 import { statusLabel, WishCard } from "./wish-card";
 
 const SEARCH_PAUSE_MS = 350;
@@ -29,17 +29,33 @@ const SEARCH_PAUSE_MS = 350;
  * pages from the API. A change of choice is a navigation, so the server
  * renders the new first page and a link to it can be shared.
  */
-export function Board({
+export function Board(
+  props: {
+    slug: string;
+    query: BoardQuery;
+    initial: BoardPage;
+    wishesOpen: boolean;
+  } & { viewer: Viewer },
+) {
+  return (
+    <BoardProvider viewer={props.viewer}>
+      <BoardView {...props} />
+    </BoardProvider>
+  );
+}
+
+function BoardView({
   slug,
   query,
   initial,
-  viewer,
+  wishesOpen,
 }: {
   slug: string;
   query: BoardQuery;
   initial: BoardPage;
-  viewer: Viewer;
+  wishesOpen: boolean;
 }) {
+  const { viewer } = useBoard();
   const router = useRouter();
   const pathname = usePathname();
   const toast = useToast();
@@ -105,6 +121,7 @@ export function Board({
 
   return (
     <div className="flex flex-col gap-6">
+      <BoardActions wishesOpen={wishesOpen} />
       <div className="flex flex-col gap-4">
         {/* On a phone the four sorts scroll sideways instead of wrapping. */}
         <div className="-mx-4 [scrollbar-width:none] overflow-x-auto px-4 md:mx-0 md:px-0">
@@ -227,7 +244,7 @@ export function Board({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <WishCard wish={wish} viewer={viewer} />
+                  <WishCard wish={wish} />
                 </motion.li>
               ))}
             </AnimatePresence>
@@ -272,5 +289,36 @@ function Toggle({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * Above the list: what this player can do here. A guest gets the button
+ * that asks to sign in; an unconfirmed player a word about the email; a
+ * closed board says so. The form itself arrives in step 3.6.
+ */
+function BoardActions({ wishesOpen }: { wishesOpen: boolean }) {
+  const { viewer, askToSignIn } = useBoard();
+  if (!wishesOpen) {
+    return <Note>{t("board.closed")}</Note>;
+  }
+  if (!viewer.signedIn) {
+    return (
+      <Button doodle onClick={askToSignIn} className="self-start">
+        {t("board.newWish")}
+      </Button>
+    );
+  }
+  if (!viewer.verified) {
+    return <Note>{t("board.verifyFirst")}</Note>;
+  }
+  return null;
+}
+
+function Note({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="rounded-md border border-line bg-surface px-4 py-3 text-ink-2">
+      {children}
+    </p>
   );
 }

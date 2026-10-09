@@ -66,6 +66,7 @@ export default async function WishesPage({
         slug={game.slug}
         query={query}
         initial={initial}
+        wishesOpen={game.wishesOpen}
         viewer={{
           signedIn: viewer !== null,
           verified: viewer?.emailVerified ?? false,

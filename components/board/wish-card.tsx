@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { formatRelativeTime, t } from "@/lib/i18n";
 import type { WishView } from "@/lib/server/wishes";
-import { VoteButton, type Viewer } from "./vote-button";
+import { VoteButton } from "./vote-button";
 
 export const typeLabel = {
   add: "wishType.add",
@@ -29,7 +29,7 @@ const statusTone = {
 } as const;
 
 /** A wish on the board: votes, labels, title, two lines, author and time. */
-export function WishCard({ wish, viewer }: { wish: WishView; viewer: Viewer }) {
+export function WishCard({ wish }: { wish: WishView }) {
   const closed = wish.status === "done" || wish.status === "declined";
   return (
     <article className="flex gap-4 rounded-lg border border-line bg-surface p-4 md:gap-6 md:p-6">
@@ -39,7 +39,6 @@ export function WishCard({ wish, viewer }: { wish: WishView; viewer: Viewer }) {
         votesCount={wish.votesCount}
         votedByMe={wish.votedByMe}
         closed={closed}
-        viewer={viewer}
       />
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex flex-wrap gap-2">
