@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { findLetter } from "../test/mailpit";
 import { newPlayer, randomIp } from "./visitors";
 
-test("a confirmed player posts a wish, and the same one again is a duplicate", async ({
+test("a confirmed player posts a wish, votes, and the same wish again is a duplicate", async ({
   playwright,
   baseURL,
 }) => {
@@ -33,6 +33,19 @@ test("a confirmed player posts a wish, and the same one again is a duplicate", a
     votedByMe: true,
     author: { nickname: player.nickname },
   });
+
+  const { id } = (await created.json()).wish as { id: string };
+  // The author's vote is there already; asking again changes nothing.
+  for (const [method, expected] of [
+    ["put", { votesCount: 1, votedByMe: true }],
+    ["delete", { votesCount: 0, votedByMe: false }],
+    ["delete", { votesCount: 0, votedByMe: false }],
+    ["put", { votesCount: 1, votedByMe: true }],
+  ] as const) {
+    const response = await api[method](`/api/wishes/${id}/vote`);
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toEqual(expected);
+  }
 
   const again = await api.post("/api/games/neon-garden/wishes", {
     data: { ...wish, title: "СВЕТЯЩИЕСЯ  грибы" },
