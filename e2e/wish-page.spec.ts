@@ -42,6 +42,9 @@ test("the author edits a fresh wish and deletes it", async ({
   baseURL,
 }) => {
   const player = newPlayer();
+  // Desktop and mobile run at once: each edits a title of its own.
+  const before = `Сад в облаках ${player.nickname}`;
+  const after = `Сад на облаках ${player.nickname}`;
   await page.context().setExtraHTTPHeaders({ "x-forwarded-for": randomIp() });
   await page.request.post("/api/auth/sign-up", {
     headers: { origin: baseURL! },
@@ -53,7 +56,7 @@ test("the author edits a fresh wish and deletes it", async ({
   );
   const created = await page.request.post("/api/games/neon-garden/wishes", {
     headers: { origin: baseURL! },
-    data: { type: "add", title: "Сад в облаках", body: "Летающие клумбы" },
+    data: { type: "add", title: before, body: "Летающие клумбы" },
   });
   const { wish } = await created.json();
 
@@ -61,11 +64,11 @@ test("the author edits a fresh wish and deletes it", async ({
   await expect(page.getByText(/Править можно ещё 1[45] минут/)).toBeVisible();
   await page.getByRole("button", { name: "Править" }).click();
   const dialog = page.getByRole("dialog", { name: "Править пожелание" });
-  await expect(dialog.getByLabel("Заголовок")).toHaveValue("Сад в облаках");
-  await dialog.getByLabel("Заголовок").fill("Сад на облаках");
+  await expect(dialog.getByLabel("Заголовок")).toHaveValue(before);
+  await dialog.getByLabel("Заголовок").fill(after);
   await dialog.getByRole("button", { name: "Сохранить" }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: "Сад на облаках" }),
+    page.getByRole("heading", { level: 1, name: after }),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Удалить" }).click();
@@ -74,6 +77,6 @@ test("the author edits a fresh wish and deletes it", async ({
     .getByRole("button", { name: "Удалить" })
     .click();
   await expect(page).toHaveURL("/games/neon-garden/wishes");
-  await expect(page.getByText("Сад на облаках")).toHaveCount(0);
+  await expect(page.getByText(after)).toHaveCount(0);
   expect((await page.request.get(`/api/wishes/${wish.id}`)).status()).toBe(404);
 });

@@ -1,15 +1,17 @@
 // Runs before the e2e server starts (see webServer in playwright.config.ts):
-// migrates the test database, adds the test content and drops reads that
+// migrates and empties the test database (the unit tests share it and leave
+// their last test's rows), adds the test content and drops reads that
 // earlier runs cached. It has to come first: Playwright opens the home page
 // to check the server is up, and that caches whatever the database holds.
 import { rm } from "node:fs/promises";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 import { seedDatabase } from "../scripts/seed-data";
-import { prepareTestDatabase } from "../test/database";
+import { emptyTestDatabase, prepareTestDatabase } from "../test/database";
 import { testEnv } from "../test/env";
 
 await prepareTestDatabase(testEnv.DATABASE_URL);
+await emptyTestDatabase(testEnv.DATABASE_URL);
 
 const client = new Client({ connectionString: testEnv.DATABASE_URL });
 await client.connect();

@@ -73,3 +73,31 @@ test("«Оставить пожелание» leads to the game's wish board", a
     page.getByRole("heading", { level: 1, name: "Доска пожеланий" }),
   ).toBeVisible();
 });
+
+test("a game page shows the three most popular wishes", async ({ page }) => {
+  await page.goto("/games/derevnya-slov");
+
+  const block = page.getByRole("region", { name: "Что просят чаще всего" });
+  const cards = block.getByRole("article");
+  await expect(cards).toHaveCount(3);
+  await expect(cards.first().getByRole("heading")).toHaveText("Режим на время");
+  await expect(
+    cards.first().getByRole("button", { name: /5 голосов/ }),
+  ).toBeVisible();
+
+  // A guest's vote asks to sign in and comes back to the game page.
+  await cards
+    .first()
+    .getByRole("button", { name: /Голос за/ })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("link", { name: "Войти" })).toHaveAttribute(
+    "href",
+    "/login?next=%2Fgames%2Fderevnya-slov",
+  );
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+
+  await block.getByRole("link", { name: "Вся доска · 7 пожеланий" }).click();
+  await expect(page).toHaveURL("/games/derevnya-slov/wishes");
+});

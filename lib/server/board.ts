@@ -13,10 +13,12 @@ import {
   sql,
   type SQL,
 } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { games, user, votes, wishes } from "@/lib/db/schema";
-import type { BoardQuery } from "@/lib/validation/wishes";
+import { boardQuerySchema, type BoardQuery } from "@/lib/validation/wishes";
+import { cacheTags } from "./cache-tags";
 import { ApiError } from "./http";
 import type { WishView } from "./wishes";
 
@@ -43,12 +45,17 @@ type Cursor = z.infer<typeof cursorSchema>;
 const encodeCursor = (cursor: Cursor) =>
   Buffer.from(JSON.stringify(cursor)).toString("base64url");
 
-function decodeCursor(value: string, sort: BoardQuery["sort"]): Cursor {
+function decodeCursor<Sort extends BoardQuery["sort"]>(
+  value: string,
+  sort: Sort,
+): Extract<Cursor, [Sort, ...unknown[]]> {
   try {
     const cursor = cursorSchema.parse(
       JSON.parse(Buffer.from(value, "base64url").toString("utf8")),
     );
-    if (cursor[0] === sort) return cursor;
+    if (cursor[0] === sort) {
+      return cursor as Extract<Cursor, [Sort, ...unknown[]]>;
+    }
   } catch {
     // Falls through.
   }
@@ -100,6 +107,7 @@ export async function listWishes(
   gameId: string,
   query: BoardQuery,
   viewerId: string | null,
+  pageSize = PAGE_SIZE,
 ): Promise<BoardPage> {
   if ((query.mine || query.voted) && !viewerId) {
     return { wishes: [], nextCursor: null };
@@ -222,12 +230,12 @@ export async function listWishes(
   const rows = await select
     .where(and(...conditions))
     .orderBy(...order)
-    .limit(PAGE_SIZE + 1);
+    .limit(pageSize + 1);
 
-  const page = rows.slice(0, PAGE_SIZE);
+  const page = rows.slice(0, pageSize);
   const last = page.at(-1);
   let nextCursor: string | null = null;
-  if (rows.length > PAGE_SIZE && last) {
+  if (rows.length > pageSize && last) {
     const { wish } = last;
     nextCursor = encodeCursor(
       query.sort === "top"
@@ -303,4 +311,119 @@ export async function findSimilarWishes(
     .orderBy(sql`${wishes.title} <-> ${text}`)
     .limit(SIMILAR_LIMIT);
   return rows.map(toView);
+}
+
+export const TOP_LIMIT = 3;
+
+/** The top of the board as a guest sees it: the same for everyone. */
+export async function queryTopWishes(gameId: string): Promise<WishView[]> {
+  const top = await listWishes(
+    gameId,
+    boardQuerySchema.parse({}),
+    null,
+    TOP_LIMIT,
+  );
+  return top.wishes;
+}
+
+/** Marks the wishes this viewer voted for. */
+export async function withViewerVotes(
+  list: WishView[],
+  viewerId: string | null,
+): Promise<WishView[]> {
+  if (!viewerId || list.length === 0) return list;
+  const mine = await db
+    .select({ wishId: votes.wishId })
+    .from(votes)
+    .where(
+      and(
+        eq(votes.userId, viewerId),
+        inArray(
+          votes.wishId,
+          list.map((wish) => wish.id),
+        ),
+      ),
+    );
+  const voted = new Set(mine.map((row) => row.wishId));
+  return list.map((wish) => ({ ...wish, votedByMe: voted.has(wish.id) }));
+}
+
+/**
+ * The 3 most popular wishes of a game for its page (spec, section 4): the
+ * board's first three in its default order, cached for everyone, with this
+ * viewer's votes on top.
+ */
+export async function topWishes(
+  gameId: string,
+  viewerId: string | null,
+): Promise<WishView[]> {
+  const top = await unstable_cache(
+    () => queryTopWishes(gameId),
+    ["top-wishes", gameId],
+    { tags: [cacheTags.wishes(gameId)] },
+  )();
+  return withViewerVotes(top, viewerId);
+}
+
+/** A wish in the player's own list: with its game and why it is hidden. */
+export type MyWish = WishView & {
+  game: { slug: string; title: string };
+  hiddenReason: (typeof wishes.$inferSelect)["hiddenReason"];
+};
+export type MyWishesPage = { wishes: MyWish[]; nextCursor: string | null };
+
+/**
+ * The player's own wishes across all games (spec, section 9), newest
+ * first, 20 a page: hidden ones too, with the reason, so the author knows
+ * what happened. Deleted wishes and games taken off the site are not here.
+ */
+export async function listMyWishes(
+  userId: string,
+  cursor?: string,
+): Promise<MyWishesPage> {
+  const conditions: SQL[] = [
+    eq(wishes.authorId, userId),
+    isNull(wishes.deletedAt),
+    eq(games.published, true),
+  ];
+  if (cursor) {
+    const [, createdAt, id] = decodeCursor(cursor, "new");
+    conditions.push(
+      sql`(${wishes.createdAt}, ${wishes.id}) < (${createdAt}::timestamptz, ${id}::uuid)`,
+    );
+  }
+  const myVote = db
+    .select({ wishId: votes.wishId })
+    .from(votes)
+    .where(eq(votes.userId, userId))
+    .as("my_vote");
+  const rows = await db
+    .select({
+      wish: wishes,
+      author: user.nickname,
+      votedByMe: sql<boolean>`${myVote.wishId} is not null`,
+      game: { slug: games.slug, title: games.title },
+      createdAtText: sql<string>`${wishes.createdAt}::text`,
+    })
+    .from(wishes)
+    .innerJoin(games, eq(games.id, wishes.gameId))
+    .innerJoin(user, eq(user.id, wishes.authorId))
+    .leftJoin(myVote, eq(myVote.wishId, wishes.id))
+    .where(and(...conditions))
+    .orderBy(desc(wishes.createdAt), desc(wishes.id))
+    .limit(PAGE_SIZE + 1);
+
+  const page = rows.slice(0, PAGE_SIZE);
+  const last = page.at(-1);
+  return {
+    wishes: page.map((row) => ({
+      ...toView(row),
+      game: row.game,
+      hiddenReason: row.wish.hiddenReason,
+    })),
+    nextCursor:
+      rows.length > PAGE_SIZE && last
+        ? encodeCursor(["new", last.createdAtText, last.wish.id])
+        : null,
+  };
 }

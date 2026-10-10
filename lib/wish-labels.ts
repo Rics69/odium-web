@@ -15,3 +15,12 @@ export const statusLabel = {
   done: "wishStatus.done",
   declined: "wishStatus.declined",
 } as const;
+
+/** Why a moderator hid a wish; "flagged" waits for one and has its own text. */
+export const hiddenReasonLabel = {
+  spam: "wish.reason.spam",
+  abuse: "wish.reason.abuse",
+  off_topic: "wish.reason.off_topic",
+  duplicate: "wish.reason.duplicate",
+  other: "wish.reason.other",
+} as const;

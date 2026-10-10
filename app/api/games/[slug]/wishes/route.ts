@@ -1,8 +1,7 @@
-import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { findBoardGame, listWishes } from "@/lib/server/board";
-import { cacheTags } from "@/lib/server/cache-tags";
 import { ApiError, apiRoute } from "@/lib/server/http";
+import { revalidateWishes } from "@/lib/server/revalidate-wishes";
 import { getCurrentUser, requireVerifiedUser } from "@/lib/server/session";
 import { createWish } from "@/lib/server/wishes";
 import { slugSchema } from "@/lib/validation/games";
@@ -27,9 +26,7 @@ export const POST = apiRoute(
   async ({ params, body, request }) => {
     const user = await requireVerifiedUser(request.headers);
     const wish = await createWish(user, params.slug, body);
-    // The game page shows the top wishes and the count (step 3.8).
-    revalidateTag(cacheTags.game(params.slug), { expire: 0 });
-    revalidateTag(cacheTags.wishes(wish.gameId), { expire: 0 });
+    await revalidateWishes(wish.gameId, { counts: true });
     return Response.json({ wish }, { status: 201 });
   },
 );

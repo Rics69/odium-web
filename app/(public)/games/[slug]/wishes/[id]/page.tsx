@@ -9,15 +9,7 @@ import { AuthorActions, ShareButton } from "@/components/wish/wish-actions";
 import { formatDateTime, t } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/server/session";
 import { getWish } from "@/lib/server/wishes";
-import { statusLabel, typeLabel } from "@/lib/wish-labels";
-
-const hiddenReasonLabel = {
-  spam: "wish.reason.spam",
-  abuse: "wish.reason.abuse",
-  off_topic: "wish.reason.off_topic",
-  duplicate: "wish.reason.duplicate",
-  other: "wish.reason.other",
-} as const;
+import { hiddenReasonLabel, statusLabel, typeLabel } from "@/lib/wish-labels";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

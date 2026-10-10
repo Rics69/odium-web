@@ -8,11 +8,13 @@ import {
   NicknameForm,
   PasswordForm,
 } from "@/components/account/profile-forms";
+import { MyWishes } from "@/components/account/my-wishes";
 import { SignOutButton } from "@/components/account/sign-out-button";
 import { BracketLabel } from "@/components/ui/bracket-label";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { formatDate, t } from "@/lib/i18n";
+import { listMyWishes } from "@/lib/server/board";
 import { getCurrentUser } from "@/lib/server/session";
 
 export const metadata: Metadata = {
@@ -20,10 +22,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// "Мои пожелания" joins the profile in step 3.8.
 export default async function ProfilePage() {
   const user = await getCurrentUser(await headers());
   if (!user) redirect("/login?next=%2Fprofile");
+  const myWishes = await listMyWishes(user.id);
 
   return (
     <section className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-12 md:px-8 md:py-16">
@@ -49,6 +51,9 @@ export default async function ProfilePage() {
         </p>
       </div>
 
+      <Section title={t("account.profile.wishesTitle")}>
+        <MyWishes firstPage={myWishes} />
+      </Section>
       <Section title={t("account.profile.nicknameTitle")}>
         <NicknameForm nickname={user.nickname} />
       </Section>

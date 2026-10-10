@@ -44,3 +44,26 @@ export async function prepareTestDatabase(url: string): Promise<void> {
     await client.end();
   }
 }
+
+/**
+ * Empties every table of the test database; the schema and migration
+ * history stay. The e2e run starts from this, whatever the unit tests left.
+ */
+export async function emptyTestDatabase(url: string): Promise<void> {
+  testDatabaseName(url);
+  const client = new Client({ connectionString: url });
+  await client.connect();
+  try {
+    const { rows } = await client.query<{ tablename: string }>(
+      "select tablename from pg_tables where schemaname = 'public'",
+    );
+    if (rows.length > 0) {
+      const tables = rows.map((row) => `"public"."${row.tablename}"`);
+      await client.query(
+        `truncate table ${tables.join(", ")} restart identity cascade`,
+      );
+    }
+  } finally {
+    await client.end();
+  }
+}

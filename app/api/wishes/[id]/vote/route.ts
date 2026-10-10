@@ -1,25 +1,21 @@
 import { eq } from "drizzle-orm";
-import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { games, wishes } from "@/lib/db/schema";
-import { cacheTags } from "@/lib/server/cache-tags";
+import { wishes } from "@/lib/db/schema";
 import { apiRoute } from "@/lib/server/http";
+import { revalidateWishes } from "@/lib/server/revalidate-wishes";
 import { requireVerifiedUser } from "@/lib/server/session";
 import { setVote } from "@/lib/server/votes";
 
 const params = z.object({ id: z.uuid() });
 
-// The counters on the game page and the board come from cached reads.
+// A vote may reorder the top wishes of the game page.
 async function revalidateWish(wishId: string) {
   const [row] = await db
-    .select({ gameId: wishes.gameId, slug: games.slug })
+    .select({ gameId: wishes.gameId })
     .from(wishes)
-    .innerJoin(games, eq(games.id, wishes.gameId))
     .where(eq(wishes.id, wishId));
-  if (!row) return;
-  revalidateTag(cacheTags.game(row.slug), { expire: 0 });
-  revalidateTag(cacheTags.wishes(row.gameId), { expire: 0 });
+  if (row) await revalidateWishes(row.gameId, { counts: false });
 }
 
 function vote(on: boolean) {

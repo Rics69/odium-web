@@ -88,6 +88,11 @@ export const ru = {
       deleteConfirmTitle: "Удалить аккаунт навсегда?",
       deleteConfirmText: "Введите пароль: вернуть аккаунт будет нельзя.",
       deleteConfirm: "Удалить навсегда",
+      wishesTitle: "Мои пожелания",
+      wishesEmptyTitle: "Вы пока ничего не предлагали",
+      wishesEmptyText:
+        "Загляните на доску любой игры: там можно предложить идею или поддержать чужую.",
+      wishesToGames: "К играм",
     },
     register: {
       title: "Регистрация",
@@ -203,6 +208,8 @@ export const ru = {
     wishesTitle: "Пожелания игроков",
     wishesEmpty:
       "Пожеланий пока нет. Расскажите первым, что добавить в игру или убрать из неё.",
+    wishesTop: "Что просят чаще всего",
+    allWishes: "Вся доска",
     coverAlt: "Обложка игры «{game}»",
     ogAlt: "Игра студии Odium",
   },

@@ -12,7 +12,7 @@ test("GET /api/games lists the published games", async ({ request }) => {
   expect(games[0]).toMatchObject({
     title: "Деревня Слов",
     status: "in_development",
-    wishesCount: 0,
+    wishesCount: 7,
   });
 });
 

@@ -1,24 +1,11 @@
-import { eq } from "drizzle-orm";
-import { revalidateTag } from "next/cache";
 import { z } from "zod";
-import { db } from "@/lib/db";
-import { games } from "@/lib/db/schema";
-import { cacheTags } from "@/lib/server/cache-tags";
 import { ApiError, apiRoute } from "@/lib/server/http";
+import { revalidateWishes } from "@/lib/server/revalidate-wishes";
 import { getCurrentUser, requireVerifiedUser } from "@/lib/server/session";
 import { deleteWish, getWish, updateWish } from "@/lib/server/wishes";
 import { wishInputSchema } from "@/lib/validation/wishes";
 
 const params = z.object({ id: z.uuid() });
-
-async function revalidateGame(gameId: string) {
-  const [game] = await db
-    .select({ slug: games.slug })
-    .from(games)
-    .where(eq(games.id, gameId));
-  if (game) revalidateTag(cacheTags.game(game.slug), { expire: 0 });
-  revalidateTag(cacheTags.wishes(gameId), { expire: 0 });
-}
 
 /** One wish: { wish }. A hidden one for its author and admins only. */
 export const GET = apiRoute({ params }, async ({ params, request }) => {
@@ -33,7 +20,8 @@ export const PATCH = apiRoute(
   async ({ params, body, request }) => {
     const user = await requireVerifiedUser(request.headers);
     const { gameId } = await updateWish(user, params.id, body);
-    await revalidateGame(gameId);
+    // A stop word in the new text hides the wish: the counts change.
+    await revalidateWishes(gameId, { counts: true });
     return { wish: await getWish(params.id, user) };
   },
 );
@@ -42,6 +30,6 @@ export const PATCH = apiRoute(
 export const DELETE = apiRoute({ params }, async ({ params, request }) => {
   const user = await requireVerifiedUser(request.headers);
   const { gameId } = await deleteWish(user, params.id);
-  await revalidateGame(gameId);
+  await revalidateWishes(gameId, { counts: true });
   return { deleted: true };
 });

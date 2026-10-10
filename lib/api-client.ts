@@ -23,6 +23,17 @@ type ErrorBody = {
   error?: { code?: string; message?: string; fields?: Record<string, string> };
 };
 
+/** GETs from our API; the answer's data, or an ApiRequestError. */
+export async function apiGet<T>(path: string): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(path);
+  } catch {
+    throw new ApiRequestError("NETWORK_ERROR", t("errors.network"));
+  }
+  return readAnswer<T>(response);
+}
+
 /** POSTs JSON to our API; the answer's data, or an ApiRequestError. */
 export function apiPost<T>(path: string, body: unknown): Promise<T> {
   return apiSend<T>("POST", path, body);
@@ -44,6 +55,10 @@ export async function apiSend<T>(
   } catch {
     throw new ApiRequestError("NETWORK_ERROR", t("errors.network"));
   }
+  return readAnswer<T>(response);
+}
+
+async function readAnswer<T>(response: Response): Promise<T> {
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const error = (data as ErrorBody | null)?.error;

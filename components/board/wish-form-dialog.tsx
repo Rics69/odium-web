@@ -23,7 +23,6 @@ import { VoteButton } from "./vote-button";
 import { statusLabel } from "@/lib/wish-labels";
 
 const SIMILAR_PAUSE_MS = 400;
-const CLOSE_MS = 300;
 
 type Errors = Partial<Record<"type" | "title" | "body", string>>;
 
@@ -64,6 +63,14 @@ export function WishFormDialog({
   const [formError, setFormError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [similar, setSimilar] = useState<WishView[]>([]);
+  // Sent: the text stays through the closing animation and is cleared when
+  // the dialog opens again, before anything is typed into it. A dialog
+  // closed by accident keeps its draft.
+  const [sent, setSent] = useState(false);
+  if (open && sent) {
+    setSent(false);
+    reset();
+  }
 
   // Too short a title shows none; the last answer stays hidden meanwhile.
   const shownSimilar =
@@ -119,9 +126,7 @@ export function WishFormDialog({
     try {
       const wish = await send(parsed.data);
       onOpenChange(false);
-      // After the closing animation; a dialog closed by accident keeps its
-      // draft.
-      setTimeout(reset, CLOSE_MS);
+      setSent(true);
       onDone(wish);
     } catch (error) {
       if (

@@ -1,8 +1,11 @@
 import type { Metadata, Route } from "next";
+import { headers } from "next/headers";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ViewTransition, type ReactNode } from "react";
+import { BoardProvider } from "@/components/board/board-context";
+import { WishCard } from "@/components/board/wish-card";
 import { Doodle } from "@/components/doodles/doodle";
 import { GameJsonLd } from "@/components/game/game-json-ld";
 import { Screenshots } from "@/components/game/screenshots";
@@ -13,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { BracketLabel } from "@/components/ui/bracket-label";
 import { LinkButton } from "@/components/ui/button";
 import { Markdown } from "@/components/ui/markdown";
+import { TextLink } from "@/components/ui/text-link";
 import { env } from "@/lib/env";
 import {
   coverTransitionName,
@@ -20,8 +24,10 @@ import {
   platformsOf,
   statusLabel,
 } from "@/lib/games";
-import { formatDate, t } from "@/lib/i18n";
+import { formatDate, t, tp } from "@/lib/i18n";
+import { findBoardGame, topWishes } from "@/lib/server/board";
 import { getPublishedGame } from "@/lib/server/games";
+import { getCurrentUser } from "@/lib/server/session";
 import { parseTrailer } from "@/lib/trailer";
 
 async function loadGame(params: PageProps<"/games/[slug]">["params"]) {
@@ -46,6 +52,13 @@ export async function generateMetadata({
 export default async function GamePage({ params }: PageProps<"/games/[slug]">) {
   const game = await loadGame(params);
   if (!game) notFound();
+  const [viewer, boardGame] = await Promise.all([
+    getCurrentUser(await headers()),
+    findBoardGame(game.slug),
+  ]);
+  const top = boardGame
+    ? await topWishes(boardGame.id, viewer?.id ?? null)
+    : [];
 
   const trailer = game.trailerUrl ? parseTrailer(game.trailerUrl) : null;
   const platforms = platformsOf(game.platforms);
@@ -147,23 +160,50 @@ export default async function GamePage({ params }: PageProps<"/games/[slug]">) {
         </section>
       )}
 
-      {/* The three most popular wishes come here in step 3.8. */}
-      <section className="mx-auto w-full max-w-6xl px-4 md:px-8">
-        <div className="relative flex flex-col items-start gap-8 overflow-hidden rounded-lg bg-accent/10 p-8 md:flex-row md:items-center md:justify-between md:p-12">
-          <div className="flex max-w-xl flex-col gap-4">
-            <BracketLabel className="text-accent-deep">
-              {t("game.wishesTitle")}
-            </BracketLabel>
-            <p className="font-display text-h3">{t("game.wishesEmpty")}</p>
-          </div>
-          <LinkButton href={wishesHref} variant="secondary">
-            {t("game.wishCta")}
-          </LinkButton>
+      <section
+        aria-labelledby="wishes-title"
+        className="mx-auto w-full max-w-6xl px-4 md:px-8"
+      >
+        <div className="relative flex flex-col gap-8 overflow-hidden rounded-lg bg-accent/10 p-6 md:p-12">
           <Doodle
             name="bubble"
             draw="view"
             className="pointer-events-none absolute -right-6 -bottom-8 size-40 text-accent/30"
           />
+          <div className="relative flex flex-col items-start gap-8 md:flex-row md:items-end md:justify-between">
+            <div className="flex max-w-xl flex-col gap-4">
+              <BracketLabel className="text-accent-deep">
+                {t("game.wishesTitle")}
+              </BracketLabel>
+              <h2 id="wishes-title" className="font-display text-h3">
+                {top.length > 0 ? t("game.wishesTop") : t("game.wishesEmpty")}
+              </h2>
+            </div>
+            <LinkButton href={wishesHref} variant="secondary">
+              {t("game.wishCta")}
+            </LinkButton>
+          </div>
+          {top.length > 0 && (
+            <BoardProvider
+              viewer={{
+                signedIn: viewer !== null,
+                verified: viewer?.emailVerified ?? false,
+              }}
+            >
+              <ol className="relative flex flex-col gap-4">
+                {top.map((wish, index) => (
+                  <li key={wish.id}>
+                    <Reveal delay={index * 0.08}>
+                      <WishCard wish={wish} slug={game.slug} />
+                    </Reveal>
+                  </li>
+                ))}
+              </ol>
+              <TextLink href={wishesHref} className="relative w-fit">
+                {t("game.allWishes")} · {tp("games.wishes", game.wishesCount)}
+              </TextLink>
+            </BoardProvider>
+          )}
         </div>
       </section>
     </article>

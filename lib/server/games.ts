@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
-import { games } from "@/lib/db/schema";
+import { games, wishes } from "@/lib/db/schema";
 import { cacheTags } from "./cache-tags";
 
 const gameColumns = {
@@ -18,8 +18,13 @@ const gameColumns = {
   status: games.status,
   releaseDate: games.releaseDate,
   wishesOpen: games.wishesOpen,
-  // The wishes table arrives in step 3.1; step 3.8 counts the real ones.
-  wishesCount: sql<number>`0`.mapWith(Number),
+  // What the board shows: neither hidden nor deleted, any status. Names
+  // are spelled out: from one table Drizzle leaves columns unqualified, and
+  // inside the subquery "id" would be the wish's.
+  wishesCount: sql<number>`(
+    select count(*) from ${wishes} w
+    where w.game_id = ${games}.id and not w.hidden and w.deleted_at is null
+  )`.mapWith(Number),
 };
 
 // Plain JSON only (no Date objects): cached results are stored as JSON.
@@ -48,7 +53,7 @@ export const getPublishedGames = unstable_cache(
   queryPublishedGames,
   ["games"],
   {
-    tags: [cacheTags.games],
+    tags: [cacheTags.games, cacheTags.wishCounts],
   },
 );
 

@@ -20,6 +20,10 @@ test("the catalogue lists published games and leads to their pages", async ({
   await expect(main.getByText("Секретный проект")).toHaveCount(0);
   await expect(main.getByText("В разработке")).toBeVisible();
   await expect(main.getByText("Вышла")).toBeVisible();
+  // Visible wishes of every status; the tests write to the other board.
+  await expect(
+    main.getByRole("link", { name: /Деревня Слов/ }).getByText("7 пожеланий"),
+  ).toBeVisible();
 
   await main.getByRole("link", { name: /Неоновый сад/ }).click();
   await expect(page).toHaveURL("/games/neon-garden");

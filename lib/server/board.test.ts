@@ -4,7 +4,13 @@ import { db } from "@/lib/db";
 import { games, user, votes, wishes } from "@/lib/db/schema";
 import { normalizeTitle } from "@/lib/wishes";
 import { boardQuerySchema, type BoardQuery } from "@/lib/validation/wishes";
-import { listWishes, PAGE_SIZE } from "./board";
+import {
+  listMyWishes,
+  listWishes,
+  PAGE_SIZE,
+  queryTopWishes,
+  withViewerVotes,
+} from "./board";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const query = (value: Partial<Record<keyof BoardQuery, string>> = {}) =>
@@ -224,5 +230,141 @@ describe("the board", () => {
     await expect(
       listWishes(gameId, query({ cursor: "garbage" }), null),
     ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
+  });
+});
+
+describe("the top of a game page", () => {
+  it("is the board's first three: popular, active, visible", async () => {
+    const { gameId, people } = await setup();
+    const [viewer] = people;
+    await addWish(gameId, {
+      title: "Сделано давно",
+      votesCount: 50,
+      status: "done",
+    });
+    await addWish(gameId, { title: "Скрыто", votesCount: 40, hidden: true });
+    await addWish(gameId, {
+      title: "Удалено",
+      votesCount: 30,
+      deletedAt: new Date(),
+    });
+    const first = await addWish(gameId, { title: "Первое", votesCount: 9 });
+    await addWish(gameId, {
+      title: "Второе",
+      votesCount: 7,
+      status: "planned",
+    });
+    await addWish(gameId, { title: "Третье", votesCount: 5 });
+    await addWish(gameId, { title: "Четвёртое", votesCount: 1 });
+    await db.insert(votes).values({ wishId: first, userId: viewer!.id });
+
+    const top = await queryTopWishes(gameId);
+
+    expect(top.map((wish) => wish.title)).toEqual([
+      "Первое",
+      "Второе",
+      "Третье",
+    ]);
+    expect(top.every((wish) => !wish.votedByMe)).toBe(true);
+    const seen = await withViewerVotes(top, viewer!.id);
+    expect(seen.map((wish) => wish.votedByMe)).toEqual([true, false, false]);
+    expect(await withViewerVotes(top, null)).toBe(top);
+  });
+});
+
+describe("my wishes", () => {
+  it("lists the player's wishes in every game, newest first, hidden ones with the reason", async () => {
+    const { gameId, people } = await setup();
+    const [me, someone] = people;
+    const [other] = await db
+      .insert(games)
+      .values({
+        slug: `other-${randomUUID().slice(0, 8)}`,
+        title: "Другая",
+        published: true,
+      })
+      .returning({ id: games.id, slug: games.slug });
+    const [offSite] = await db
+      .insert(games)
+      .values({
+        slug: `off-${randomUUID().slice(0, 8)}`,
+        title: "Снята",
+        published: false,
+      })
+      .returning({ id: games.id });
+    const ago = (days: number) => new Date(Date.now() - days * DAY_MS);
+    await addWish(gameId, {
+      title: "Старое",
+      authorId: me!.id,
+      createdAt: ago(3),
+    });
+    await addWish(other!.id, {
+      title: "Скрытое",
+      authorId: me!.id,
+      hidden: true,
+      hiddenReason: "off_topic",
+      createdAt: ago(2),
+    });
+    await addWish(gameId, {
+      title: "Свежее",
+      authorId: me!.id,
+      status: "planned",
+      createdAt: ago(1),
+    });
+    await addWish(gameId, {
+      title: "Удалённое",
+      authorId: me!.id,
+      deletedAt: new Date(),
+    });
+    await addWish(offSite!.id, {
+      title: "С неопубликованной игры",
+      authorId: me!.id,
+    });
+    await addWish(gameId, { title: "Чужое", authorId: someone!.id });
+
+    const page = await listMyWishes(me!.id);
+
+    expect(
+      page.wishes.map((wish) => [
+        wish.title,
+        wish.game.title,
+        wish.hiddenReason,
+      ]),
+    ).toEqual([
+      ["Свежее", "G", null],
+      ["Скрытое", "Другая", "off_topic"],
+      ["Старое", "G", null],
+    ]);
+    expect(page.wishes[1]).toMatchObject({
+      hidden: true,
+      game: { slug: other!.slug },
+      author: { nickname: me!.nickname },
+    });
+    expect(page.nextCursor).toBeNull();
+  });
+
+  it("goes page by page", async () => {
+    const { gameId, people } = await setup();
+    const [me] = people;
+    const sameMoment = new Date(Date.now() - DAY_MS);
+    for (let i = 0; i < PAGE_SIZE + 5; i++) {
+      await addWish(gameId, {
+        title: `Моё ${i}`,
+        authorId: me!.id,
+        createdAt: sameMoment,
+      });
+    }
+
+    const first = await listMyWishes(me!.id);
+    const second = await listMyWishes(me!.id, first.nextCursor!);
+
+    expect(first.wishes).toHaveLength(PAGE_SIZE);
+    expect(second.wishes).toHaveLength(5);
+    expect(second.nextCursor).toBeNull();
+    const ids = [...first.wishes, ...second.wishes].map((wish) => wish.id);
+    expect(new Set(ids).size).toBe(PAGE_SIZE + 5);
+    await expect(listMyWishes(me!.id, "nonsense")).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
   });
 });
