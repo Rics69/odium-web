@@ -24,7 +24,8 @@ async function signUp(
 }
 
 // Desktop and phone run at once: each votes for its own seeded wish, so
-// neither sees the other's vote.
+// neither sees the other's vote. The board is read oldest first: other
+// tests add wishes with votes, and the seeded ones stay on the first page.
 const target = {
   desktop: {
     title: "Звук поливки",
@@ -44,7 +45,7 @@ test("a confirmed player votes at once, and the vote stays", async ({
 }, testInfo) => {
   const wish = target[testInfo.project.name as keyof typeof target];
   await signUp(page, baseURL!, { confirm: true });
-  await page.goto("/games/neon-garden/wishes");
+  await page.goto("/games/neon-garden/wishes?sort=old");
 
   const vote = page.getByRole("button", {
     name: new RegExp(`Голос за «${wish.title}»`),
@@ -66,7 +67,7 @@ test("an unconfirmed player reads why the buttons are closed", async ({
   baseURL,
 }) => {
   await signUp(page, baseURL!, { confirm: false });
-  await page.goto("/games/neon-garden/wishes");
+  await page.goto("/games/neon-garden/wishes?sort=old");
 
   await expect(
     page.getByText("Подтвердите почту — тогда можно голосовать"),
