@@ -17,6 +17,8 @@ const envSchema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   // Sender, with a name: Odium <no-reply@odium.example>
   MAIL_FROM: z.string().min(1),
+  // Where uploaded images live on disk (a Docker volume on the server).
+  STORAGE_DIR: z.string().min(1).default("storage"),
 });
 
 const parsed = envSchema.safeParse(process.env);

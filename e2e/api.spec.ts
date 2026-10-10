@@ -5,11 +5,18 @@ test("GET /api/games lists the published games", async ({ request }) => {
 
   expect(response.status()).toBe(200);
   const { games } = await response.json();
-  expect(games.map((game: { slug: string }) => game.slug)).toEqual([
-    "derevnya-slov",
-    "neon-garden",
-  ]);
-  expect(games[0]).toMatchObject({
+  // The admin tests publish games of their own for a moment.
+  const slugs = games.map((game: { slug: string }) => game.slug);
+  expect(slugs).toEqual(
+    expect.arrayContaining(["derevnya-slov", "neon-garden"]),
+  );
+  expect(slugs).not.toContain("secret-project");
+  expect(slugs.indexOf("derevnya-slov")).toBeLessThan(
+    slugs.indexOf("neon-garden"),
+  );
+  expect(
+    games.find((game: { slug: string }) => game.slug === "derevnya-slov"),
+  ).toMatchObject({
     title: "Деревня Слов",
     status: "in_development",
     wishesCount: 7,

@@ -12,7 +12,7 @@ import Image from "next/image";
 import type { PointerEvent } from "react";
 import { Doodle } from "@/components/doodles/doodle";
 import { spring } from "@/components/motion/presets";
-import { buttonClasses } from "@/components/ui/button";
+import { buttonClasses } from "@/components/ui/button-classes";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 

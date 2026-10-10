@@ -35,7 +35,6 @@ export const gameStatuses = ["released", "in_development"] as const;
 export type GameStatus = (typeof gameStatuses)[number];
 
 // Lowercase latin words joined by hyphens: derevnya-slov.
-export const slugSchema = z
-  .string()
-  .max(60)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const SLUG_MAX = 60;
+export const slugSchema = z.string().max(SLUG_MAX).regex(SLUG_PATTERN);

@@ -41,6 +41,10 @@ const errors = {
     message: () => t("wishes.errors.duplicate"),
   },
   WISHES_CLOSED: { status: 409, message: () => t("wishes.errors.closed") },
+  GAME_HAS_WISHES: {
+    status: 409,
+    message: () => t("admin.games.errors.hasWishes"),
+  },
   EDIT_CLOSED: { status: 409, message: () => t("wishes.errors.editClosed") },
   DELETE_CLOSED: {
     status: 409,

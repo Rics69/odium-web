@@ -1,4 +1,4 @@
-import { buttonClasses } from "@/components/ui/button";
+import { buttonClasses } from "@/components/ui/button-classes";
 import { cn } from "@/lib/cn";
 import { storeLabel } from "@/lib/games";
 import { t } from "@/lib/i18n";

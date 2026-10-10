@@ -22,6 +22,7 @@ blob-report/
 
 # Uploaded images in local development
 storage/
+storage-test/
 
 # Tools and OS
 .vercel/

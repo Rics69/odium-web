@@ -34,6 +34,19 @@ export async function apiGet<T>(path: string): Promise<T> {
   return readAnswer<T>(response);
 }
 
+/** POSTs a file as multipart `file`; the answer's data, or an error. */
+export async function apiUpload<T>(path: string, file: File): Promise<T> {
+  const body = new FormData();
+  body.set("file", file);
+  let response: Response;
+  try {
+    response = await fetch(path, { method: "POST", body });
+  } catch {
+    throw new ApiRequestError("NETWORK_ERROR", t("errors.network"));
+  }
+  return readAnswer<T>(response);
+}
+
 /** POSTs JSON to our API; the answer's data, or an ApiRequestError. */
 export function apiPost<T>(path: string, body: unknown): Promise<T> {
   return apiSend<T>("POST", path, body);
