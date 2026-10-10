@@ -21,8 +21,8 @@ blob-report/
 !.env.deploy.example
 
 # Uploaded images in local development
-storage/
-storage-test/
+/storage/
+/storage-test/
 
 # Tools and OS
 .vercel/
