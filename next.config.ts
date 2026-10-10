@@ -37,6 +37,11 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // The admin is not for search engines (spec, section 10).
+        source: "/admin/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
     ];
   },
 };

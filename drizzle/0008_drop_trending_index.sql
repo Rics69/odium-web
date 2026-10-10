@@ -1,0 +1,1 @@
+DROP INDEX "votes_wish_created_idx";

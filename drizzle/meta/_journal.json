@@ -57,6 +57,20 @@
       "when": 1791558577765,
       "tag": "0007_similar_titles_index",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791650664089,
+      "tag": "0008_drop_trending_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791650687545,
+      "tag": "0009_admin_log",
+      "breakpoints": true
     }
   ]
 }

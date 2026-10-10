@@ -265,8 +265,6 @@ export const votes = pgTable(
   (table) => [
     primaryKey({ columns: [table.wishId, table.userId] }),
     index("votes_user_idx").on(table.userId),
-    // "В тренде": votes of the last 7 days.
-    index("votes_wish_created_idx").on(table.wishId, table.createdAt),
   ],
 );
 
@@ -276,3 +274,29 @@ export const stopWords = pgTable("stop_words", {
   id: uuid().primaryKey().defaultRandom(),
   word: text().notNull().unique(),
 });
+
+// Every admin action (spec, sections 6 and 8): who, what, on what, before
+// and after, and why. Written in the same transaction as the action, so
+// there is no change without its record (lib/server/admin-log.ts). The
+// record stays when the admin's account is gone.
+export const adminLog = pgTable(
+  "admin_log",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    adminId: uuid().references(() => user.id, { onDelete: "set null" }),
+    action: text().notNull(),
+    targetType: text().notNull(),
+    targetId: text().notNull(),
+    before: jsonb(),
+    after: jsonb(),
+    reason: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // Newest first, as the journal reads it.
+    index("admin_log_created_idx").on(
+      table.createdAt.desc().nullsFirst(),
+      table.id.desc().nullsFirst(),
+    ),
+  ],
+);

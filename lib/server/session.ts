@@ -1,5 +1,7 @@
 import "server-only";
 import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import { cache } from "react";
 import { db } from "@/lib/db";
 import { session as sessions, user as users } from "@/lib/db/schema";
@@ -82,5 +84,16 @@ export async function requireVerifiedUser(
 export async function requireAdmin(headers: Headers): Promise<CurrentUser> {
   const user = await requireUser(headers);
   if (user.role !== "admin") throw new ApiError("FORBIDDEN");
+  return user;
+}
+
+/**
+ * An admin page: for anyone else, a guest included, there is no such page
+ * (404, spec section 6). Every admin page calls it itself: a layout is not
+ * checked again when moving between the pages under it.
+ */
+export async function requireAdminPage(): Promise<CurrentUser> {
+  const user = await getCurrentUser(await headers());
+  if (user?.role !== "admin") notFound();
   return user;
 }

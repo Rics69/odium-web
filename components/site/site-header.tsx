@@ -10,7 +10,9 @@ export async function SiteHeader() {
   const user = await getCurrentUser(await headers());
   return (
     <>
-      <HeaderBar user={user && { nickname: user.nickname }} />
+      <HeaderBar
+        user={user && { nickname: user.nickname, admin: user.role === "admin" }}
+      />
       {user && !user.emailVerified && <VerifyEmailBanner email={user.email} />}
     </>
   );

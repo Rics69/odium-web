@@ -13,7 +13,7 @@ import { Logo } from "./logo";
 
 const HIDE_AFTER_PX = 160;
 
-export type HeaderUser = { nickname: string };
+export type HeaderUser = { nickname: string; admin: boolean };
 
 // Transparent at the top of the page; once scrolled it gets a paper
 // background, hides while scrolling down and comes back on the way up.
@@ -63,6 +63,13 @@ export function HeaderBar({ user }: { user: HeaderUser | null }) {
                   {t("nav.games")}
                 </NavLink>
               </li>
+              {user?.admin && (
+                <li>
+                  <NavLink href="/admin" active={false}>
+                    {t("nav.admin")}
+                  </NavLink>
+                </li>
+              )}
               <li>
                 {user ? (
                   <ProfileLink
