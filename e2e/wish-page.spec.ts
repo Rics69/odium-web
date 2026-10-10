@@ -30,6 +30,23 @@ test("a wish has its own page with the studio reply and a picture for links", as
   expect(response.headers()["content-type"]).toBe("image/png");
 });
 
+test("«Поделиться» copies the link even without the Clipboard API", async ({
+  page,
+}) => {
+  // A phone on plain HTTP (the local network) has neither the share sheet
+  // nor the clipboard.
+  await page.addInitScript(() => {
+    for (const name of ["share", "clipboard"]) {
+      Object.defineProperty(navigator, name, { value: undefined });
+    }
+  });
+  await page.goto("/games/derevnya-slov/wishes");
+  await page.getByRole("link", { name: "Режим на время" }).click();
+
+  await page.getByRole("button", { name: "Поделиться" }).click();
+  await expect(page.getByText("Ссылка скопирована")).toBeVisible();
+});
+
 test("an unknown or misplaced wish is a 404", async ({ page }) => {
   const response = await page.goto(
     "/games/neon-garden/wishes/00000000-0000-4000-8000-000000000000",

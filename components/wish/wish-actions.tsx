@@ -13,7 +13,46 @@ import type { WishDetail, WishView } from "@/lib/server/wishes";
 
 const MINUTE_MS = 60 * 1000;
 
-/** «Поделиться»: the system share sheet on phones, a copied link elsewhere. */
+/**
+ * Copies text without the Clipboard API, which pages opened over plain
+ * HTTP (a phone on the local network) do not get: a selected hidden field
+ * and the old copy command.
+ */
+function copyBySelection(text: string): boolean {
+  const field = document.createElement("textarea");
+  field.value = text;
+  field.readOnly = true;
+  field.style.position = "fixed";
+  field.style.opacity = "0";
+  document.body.append(field);
+  field.select();
+  field.setSelectionRange(0, text.length);
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    field.remove();
+  }
+}
+
+async function copyText(text: string): Promise<boolean> {
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Falls back below.
+    }
+  }
+  return copyBySelection(text);
+}
+
+/**
+ * «Поделиться»: the system share sheet on phones, a copied link elsewhere.
+ * Both need HTTPS; without them the link is copied the old way, and if
+ * even that fails the player is told to take it from the address bar.
+ */
 export function ShareButton({ title }: { title: string }) {
   const toast = useToast();
 
@@ -24,8 +63,11 @@ export function ShareButton({ title }: { title: string }) {
       await navigator.share({ title, url }).catch(() => {});
       return;
     }
-    await navigator.clipboard.writeText(url);
-    toast({ title: t("wish.copied"), tone: "success" });
+    if (await copyText(url)) {
+      toast({ title: t("wish.copied"), tone: "success" });
+    } else {
+      toast({ title: t("wish.copyFailed"), tone: "error" });
+    }
   }
 
   return (

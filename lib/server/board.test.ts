@@ -88,7 +88,7 @@ describe("the board", () => {
       });
     }
 
-    for (const sort of ["top", "new", "old", "trending"]) {
+    for (const sort of ["top", "new", "old"]) {
       const { ids, pages } = await allPages(gameId, sort);
       expect(new Set(ids).size, sort).toBe(45);
       expect(ids, sort).toHaveLength(45);
@@ -96,8 +96,8 @@ describe("the board", () => {
     }
   });
 
-  it("orders popular, new, old and trending", async () => {
-    const { gameId, people } = await setup();
+  it("orders popular, new and old", async () => {
+    const { gameId } = await setup();
     const old = await addWish(gameId, {
       title: "Старое и популярное",
       votesCount: 3,
@@ -113,31 +113,15 @@ describe("the board", () => {
       votesCount: 1,
       createdAt: new Date(Date.now() - 10 * DAY_MS),
     });
-    // Old votes for the old wish, this week's votes for the fresh one.
-    await db.insert(votes).values([
-      ...people.map((p) => ({
-        wishId: old,
-        userId: p.id,
-        createdAt: new Date(Date.now() - 20 * DAY_MS),
-      })),
-      { wishId: fresh, userId: people[0]!.id },
-      { wishId: fresh, userId: people[1]!.id },
-      {
-        wishId: middle,
-        userId: people[2]!.id,
-        createdAt: new Date(Date.now() - 9 * DAY_MS),
-      },
-    ]);
 
     const order = async (sort: string) =>
       (await listWishes(gameId, query({ sort }), null)).wishes.map((w) => w.id);
     expect(await order("top")).toEqual([old, fresh, middle]);
     expect(await order("new")).toEqual([fresh, middle, old]);
     expect(await order("old")).toEqual([old, middle, fresh]);
-    expect(await order("trending")).toEqual([fresh, old, middle]);
   });
 
-  it("hides done, declined, hidden and deleted wishes unless asked", async () => {
+  it("shows every status and hides hidden and deleted wishes", async () => {
     const { gameId } = await setup();
     await addWish(gameId, { title: "Новое" });
     await addWish(gameId, { title: "Сделано", status: "done" });
@@ -149,46 +133,13 @@ describe("the board", () => {
     });
     await addWish(gameId, { title: "Удалено", deletedAt: new Date() });
 
-    const titles = async (value: Record<string, string>) =>
-      (await listWishes(gameId, query(value), null)).wishes
-        .map((w) => w.title)
-        .sort();
-    expect(await titles({})).toEqual(["Новое"]);
-    expect(await titles({ status: "done" })).toEqual(["Сделано"]);
-    expect(await titles({ status: "all" })).toEqual([
+    const { wishes: page } = await listWishes(gameId, query(), null);
+
+    expect(page.map((w) => w.title).sort()).toEqual([
       "Новое",
       "Отклонено",
       "Сделано",
     ]);
-  });
-
-  it("filters by type, mine, voted and text", async () => {
-    const { gameId, people } = await setup();
-    const [me, other] = [people[0]!, people[1]!];
-    const mine = await addWish(gameId, {
-      title: "Кооператив с другом",
-      authorId: me.id,
-    });
-    const removal = await addWish(gameId, {
-      title: "Убрать рекламу",
-      type: "remove",
-      authorId: other.id,
-      body: "Особенно 100% полноэкранную",
-    });
-    await db.insert(votes).values({ wishId: removal, userId: me.id });
-
-    const ids = async (
-      value: Record<string, string>,
-      viewer: string | null = me.id,
-    ) =>
-      (await listWishes(gameId, query(value), viewer)).wishes.map((w) => w.id);
-    expect(await ids({ type: "remove" })).toEqual([removal]);
-    expect(await ids({ mine: "1" })).toEqual([mine]);
-    expect(await ids({ voted: "1" })).toEqual([removal]);
-    expect(await ids({ mine: "1" }, null)).toEqual([]);
-    expect(await ids({ q: "КООПЕРАТИВ" })).toEqual([mine]);
-    expect(await ids({ q: "100%" })).toEqual([removal]);
-    expect(await ids({ q: "_" })).toEqual([]);
   });
 
   it("says which wishes the viewer voted for and who wrote them", async () => {
@@ -234,7 +185,7 @@ describe("the board", () => {
 });
 
 describe("the top of a game page", () => {
-  it("is the board's first three: popular, active, visible", async () => {
+  it("is the three most popular of what is still asked for", async () => {
     const { gameId, people } = await setup();
     const [viewer] = people;
     await addWish(gameId, {
