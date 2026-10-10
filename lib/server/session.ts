@@ -2,6 +2,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import type { NextRequest } from "next/server";
 import { cache } from "react";
 import { db } from "@/lib/db";
 import { session as sessions, user as users } from "@/lib/db/schema";
@@ -86,6 +87,10 @@ export async function requireAdmin(headers: Headers): Promise<CurrentUser> {
   if (user.role !== "admin") throw new ApiError("FORBIDDEN");
   return user;
 }
+
+/** The guard of every /api/admin route (see apiRoute). */
+export const adminOnly = (request: NextRequest) =>
+  requireAdmin(request.headers);
 
 /**
  * An admin page: for anyone else, a guest included, there is no such page

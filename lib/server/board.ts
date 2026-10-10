@@ -29,12 +29,12 @@ const cursorSchema = z.union([
   z.tuple([z.literal("new"), z.string(), z.uuid()]),
   z.tuple([z.literal("old"), z.string(), z.uuid()]),
 ]);
-type Cursor = z.infer<typeof cursorSchema>;
+export type Cursor = z.infer<typeof cursorSchema>;
 
-const encodeCursor = (cursor: Cursor) =>
+export const encodeCursor = (cursor: Cursor) =>
   Buffer.from(JSON.stringify(cursor)).toString("base64url");
 
-function decodeCursor<Sort extends BoardQuery["sort"]>(
+export function decodeCursor<Sort extends BoardQuery["sort"]>(
   value: string,
   sort: Sort,
 ): Extract<Cursor, [Sort, ...unknown[]]> {

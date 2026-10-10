@@ -5,6 +5,7 @@ import type { z } from "zod";
 import { t, tp } from "@/lib/i18n";
 import { clientIp } from "./client-ip";
 import { hitRateLimit } from "./rate-limit";
+import type { CurrentUser } from "./session";
 
 // Error codes of the API with their HTTP statuses and texts for players
 // (spec, section 9). The site shows `message` as is.
@@ -113,6 +114,12 @@ export function errorResponse(error: ApiError): Response {
 }
 
 type Schemas = {
+  /**
+   * The rights check, before anything of the request is read: a stranger
+   * gets 401 or 403 and learns nothing about what the address takes. What
+   * it returns comes to the handler as `user`.
+   */
+  guard?: (request: NextRequest) => Promise<CurrentUser>;
   /** Route segments. A mismatch answers 404: no such thing at this address. */
   params?: z.ZodType;
   /** The query string, one value per name. */
@@ -127,6 +134,10 @@ export type ApiInput<S extends Schemas> = {
   request: NextRequest;
   /** For per-IP limits, see clientIp. */
   ip: string;
+  /** Who passed the guard. */
+  user: S["guard"] extends (request: NextRequest) => Promise<CurrentUser>
+    ? CurrentUser
+    : undefined;
   params: Parsed<S["params"]>;
   query: Parsed<S["query"]>;
   body: Parsed<S["body"]>;
@@ -136,8 +147,8 @@ const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /**
  * Wraps a Route Handler. Before `run` it counts the request against the
- * per-IP API limit, checks the Origin of changing requests and parses the
- * input with Zod. `run` returns data for a JSON response (or a Response),
+ * per-IP API limit, checks the Origin of changing requests, runs the rights
+ * check if there is one and parses the input with Zod. `run` returns data for a JSON response (or a Response),
  * and throws ApiError for an error one. Anything else thrown is logged and
  * answers 500 without details.
  */
@@ -161,9 +172,11 @@ export function apiRoute<S extends Schemas>(
         throw new ApiError("FORBIDDEN");
       }
 
+      const user = schemas.guard && (await schemas.guard(request));
       const input = {
         request,
         ip,
+        user,
         params:
           schemas.params &&
           parse(schemas.params, await context.params, "NOT_FOUND"),

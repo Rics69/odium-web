@@ -134,6 +134,46 @@ describe("apiRoute", () => {
     });
   });
 
+  it("checks rights before reading the input, and hands the user over", async () => {
+    const run = vi.fn(async ({ user }: { user: { nickname: string } }) => ({
+      hello: user.nickname,
+    }));
+    const guarded = (allowed: boolean) =>
+      apiRoute(
+        {
+          guard: async () => {
+            if (!allowed) throw new ApiError("FORBIDDEN");
+            return {
+              id: "00000000-0000-4000-8000-000000000000",
+              nickname: "Admin",
+              email: "admin@example.com",
+              emailVerified: true,
+              role: "admin",
+              createdAt: new Date(),
+            };
+          },
+          body: z.object({ title: z.string() }),
+        },
+        run,
+      );
+
+    // A stranger with a wrong body: 403, not the body's 400.
+    const refused = await call(guarded(false), {
+      method: "POST",
+      headers: sameOrigin,
+      body: "{}",
+    });
+    expect(refused.status).toBe(403);
+    expect(run).not.toHaveBeenCalled();
+
+    const allowed = await call(guarded(true), {
+      method: "POST",
+      headers: sameOrigin,
+      body: JSON.stringify({ title: "x" }),
+    });
+    expect(await allowed.json()).toEqual({ hello: "Admin" });
+  });
+
   describe("Origin check", () => {
     const handler = apiRoute({}, async () => ({ done: true }));
 

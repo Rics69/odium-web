@@ -19,14 +19,14 @@ export default async function AdminOverviewPage() {
     <AdminPage title={t("admin.sections.overview")}>
       <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Figure
-          href="/admin/wishes"
+          href="/admin/wishes?visibility=review"
           label={t("admin.overview.flagged")}
           value={numbers.flagged}
           hint={t("admin.overview.flaggedHint")}
           alert={numbers.flagged > 0}
         />
         <Figure
-          href="/admin/wishes"
+          href="/admin/wishes?status=new&visibility=visible"
           label={t("admin.overview.fresh")}
           value={numbers.fresh}
           hint={t("admin.overview.freshHint")}

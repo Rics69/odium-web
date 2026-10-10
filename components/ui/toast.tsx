@@ -43,7 +43,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext value={show}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center gap-2 p-4 md:items-end md:p-6">
+      {/* On a phone at the top: the bottom is where the thumb presses the
+          buttons of sheets and bars, and a toast there would be in the way. */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] flex flex-col items-center gap-2 p-4 md:top-auto md:bottom-0 md:items-end md:p-6">
         <AnimatePresence initial={false}>
           {toasts.map((toast) => (
             <Toast key={toast.id} toast={toast} onDismiss={dismiss} />
@@ -102,7 +104,7 @@ function Toast({
     <motion.div
       layout
       role={tone === "error" ? "alert" : "status"}
-      initial={{ opacity: 0, y: 24, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
       transition={spring.bouncy}

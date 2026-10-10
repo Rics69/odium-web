@@ -90,3 +90,13 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
     />
   );
 }
+
+// A native list: the phone's own picker, keyboard and screen readers for free.
+export function Select({ className, ...props }: ComponentProps<"select">) {
+  return (
+    <select
+      className={cn(control, "min-h-11 py-2 pr-10", className)}
+      {...props}
+    />
+  );
+}
