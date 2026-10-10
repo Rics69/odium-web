@@ -176,6 +176,10 @@ export function AdminWishes({
             remove([id]);
             setEditing(null);
           }}
+          onMerged={({ wish, original }) => {
+            replace([wish, original]);
+            setEditing(null);
+          }}
         />
       )}
     </div>

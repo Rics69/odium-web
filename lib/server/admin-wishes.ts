@@ -12,8 +12,9 @@ import {
   sql,
   type SQL,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
-import { games, user, wishes } from "@/lib/db/schema";
+import { games, user, votes, wishes } from "@/lib/db/schema";
 import { t } from "@/lib/i18n";
 import type {
   AdminWishBulk,
@@ -29,6 +30,7 @@ import {
 import { decodeCursor, encodeCursor, PAGE_SIZE } from "./board";
 import { ApiError } from "./http";
 import type { CurrentUser } from "./session";
+import { recountVotes } from "./votes";
 import { isUniqueViolation } from "./wishes";
 
 type WishRow = typeof wishes.$inferSelect;
@@ -46,7 +48,8 @@ export type AdminWish = {
   votesCount: number;
   hidden: boolean;
   hiddenReason: WishRow["hiddenReason"];
-  mergedIntoId: string | null;
+  /** The original a duplicate was merged into (step 4.3). */
+  mergedInto: { id: string; title: string } | null;
   author: { id: string; nickname: string } | null;
   createdAt: string;
   updatedAt: string;
@@ -61,23 +64,32 @@ export type AdminWishesPage = {
 const likePattern = (text: string) =>
   `%${text.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
 
+const original = alias(wishes, "original");
+
 function selectAdminWishes() {
   return db
     .select({
       wish: wishes,
       game: { id: games.id, slug: games.slug, title: games.title },
       authorNickname: user.nickname,
+      originalTitle: original.title,
       createdAtText: sql<string>`${wishes.createdAt}::text`,
     })
     .from(wishes)
     .innerJoin(games, eq(games.id, wishes.gameId))
     .leftJoin(user, eq(user.id, wishes.authorId))
+    .leftJoin(original, eq(original.id, wishes.mergedIntoId))
     .$dynamic();
 }
 
 type AdminRow = Awaited<ReturnType<typeof selectAdminWishes>>[number];
 
-function toAdminWish({ wish, game, authorNickname }: AdminRow): AdminWish {
+function toAdminWish({
+  wish,
+  game,
+  authorNickname,
+  originalTitle,
+}: AdminRow): AdminWish {
   return {
     id: wish.id,
     game,
@@ -90,7 +102,10 @@ function toAdminWish({ wish, game, authorNickname }: AdminRow): AdminWish {
     votesCount: wish.votesCount,
     hidden: wish.hidden,
     hiddenReason: wish.hiddenReason,
-    mergedIntoId: wish.mergedIntoId,
+    mergedInto:
+      wish.mergedIntoId && originalTitle !== null
+        ? { id: wish.mergedIntoId, title: originalTitle }
+        : null,
     author:
       wish.authorId && authorNickname !== null
         ? { id: wish.authorId, nickname: authorNickname }
@@ -273,11 +288,18 @@ async function applyPatch(
   } else if (patch.hidden === false && wish.hidden) {
     set.hidden = false;
     set.hiddenReason = null;
+    // A merged duplicate shown again is a wish of its own; its votes stay
+    // with the original.
+    set.mergedIntoId = null;
     await record({
       ...target,
       action: "wish.show",
-      before: { hidden: true, hiddenReason: wish.hiddenReason },
-      after: { hidden: false, hiddenReason: null },
+      before: {
+        hidden: true,
+        hiddenReason: wish.hiddenReason,
+        mergedIntoId: wish.mergedIntoId,
+      },
+      after: { hidden: false, hiddenReason: null, mergedIntoId: null },
     });
   }
 
@@ -416,5 +438,141 @@ export async function moderateWishes(
       }
     }
     return { changedIds, gameIds: [...gameIds] };
+  });
+}
+
+export const ORIGINALS_LIMIT = 8;
+
+/**
+ * Candidates to merge a duplicate into (spec, section 6): visible wishes of
+ * the same game, not merged themselves. Without a search, the titles
+ * closest to the duplicate's (trigram distance); with one, titles that
+ * contain it.
+ */
+export async function findOriginals(
+  wishId: string,
+  search?: string,
+): Promise<AdminWish[]> {
+  const [duplicate] = await db
+    .select({ gameId: wishes.gameId, title: wishes.title })
+    .from(wishes)
+    .where(and(eq(wishes.id, wishId), isNull(wishes.deletedAt)));
+  if (!duplicate) throw new ApiError("NOT_FOUND");
+  const rows = await selectAdminWishes()
+    .where(
+      and(
+        eq(wishes.gameId, duplicate.gameId),
+        ne(wishes.id, wishId),
+        eq(wishes.hidden, false),
+        isNull(wishes.deletedAt),
+        isNull(wishes.mergedIntoId),
+        search ? ilike(wishes.title, likePattern(search)) : undefined,
+      ),
+    )
+    .orderBy(
+      search
+        ? desc(wishes.votesCount)
+        : sql`${wishes.title} <-> ${duplicate.title}`,
+    )
+    .limit(ORIGINALS_LIMIT);
+  return rows.map(toAdminWish);
+}
+
+const mergeRefused = (message: string) =>
+  new ApiError("VALIDATION_ERROR", { fields: { targetId: message } });
+
+/**
+ * Merges a duplicate into its original (spec, section 6): the duplicate's
+ * votes move over, a player who voted for both keeps one vote; both
+ * counters are recounted; the duplicate is hidden as "дубль" and points to
+ * the original. One transaction with its journal record; both rows are
+ * locked, so a vote at the same moment waits and then finds the duplicate
+ * hidden.
+ */
+export async function mergeWish(
+  admin: Pick<CurrentUser, "id">,
+  duplicateId: string,
+  originalId: string,
+): Promise<{ gameId: string; movedVotes: number }> {
+  if (duplicateId === originalId) {
+    throw mergeRefused(t("admin.wishes.errors.mergeSelf"));
+  }
+  return adminAction(admin, async (tx, record) => {
+    // Locked in id order: two merges of the same pair cannot deadlock.
+    const rows = await tx
+      .select()
+      .from(wishes)
+      .where(
+        and(
+          inArray(wishes.id, [duplicateId, originalId]),
+          isNull(wishes.deletedAt),
+        ),
+      )
+      .orderBy(asc(wishes.id))
+      .for("update");
+    const duplicate = rows.find((row) => row.id === duplicateId);
+    const original = rows.find((row) => row.id === originalId);
+    if (!duplicate) throw new ApiError("NOT_FOUND");
+    if (!original) throw mergeRefused(t("admin.wishes.errors.mergeMissing"));
+    if (duplicate.mergedIntoId) {
+      throw mergeRefused(t("admin.wishes.errors.mergeAlready"));
+    }
+    if (original.gameId !== duplicate.gameId) {
+      throw mergeRefused(t("admin.wishes.errors.mergeOtherGame"));
+    }
+    if (original.hidden || original.mergedIntoId) {
+      throw mergeRefused(t("admin.wishes.errors.mergeHiddenOriginal"));
+    }
+
+    const moved = await tx
+      .insert(votes)
+      .select(
+        tx
+          .select({
+            wishId: sql<string>`${originalId}::uuid`.as("wish_id"),
+            userId: votes.userId,
+            createdAt: votes.createdAt,
+          })
+          .from(votes)
+          .where(eq(votes.wishId, duplicateId)),
+      )
+      .onConflictDoNothing()
+      .returning({ userId: votes.userId });
+    await tx.delete(votes).where(eq(votes.wishId, duplicateId));
+    await recountVotes(tx, [duplicateId, originalId]);
+    await tx
+      .update(wishes)
+      .set({
+        hidden: true,
+        hiddenReason: "duplicate",
+        mergedIntoId: originalId,
+      })
+      .where(eq(wishes.id, duplicateId));
+    const [counted] = await tx
+      .select({ votesCount: wishes.votesCount })
+      .from(wishes)
+      .where(eq(wishes.id, originalId));
+
+    await record({
+      action: "wish.merge",
+      targetType: "wish",
+      targetId: duplicateId,
+      before: {
+        hidden: duplicate.hidden,
+        hiddenReason: duplicate.hiddenReason,
+        votesCount: duplicate.votesCount,
+        originalVotesCount: original.votesCount,
+      },
+      after: {
+        hidden: true,
+        hiddenReason: "duplicate",
+        mergedIntoId: originalId,
+        originalTitle: original.title,
+        movedVotes: moved.length,
+        originalVotesCount: counted!.votesCount,
+      },
+      reason: "duplicate",
+    });
+    return { gameId: duplicate.gameId, movedVotes: moved.length };
   });
 }

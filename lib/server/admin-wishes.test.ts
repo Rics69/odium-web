@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { adminLog, games, user, wishes } from "@/lib/db/schema";
+import { adminLog, games, user, votes, wishes } from "@/lib/db/schema";
 import {
   adminWishBulkSchema,
   adminWishPatchSchema,
@@ -11,11 +11,14 @@ import {
 import { normalizeTitle } from "@/lib/wishes";
 import {
   deleteWishAsAdmin,
+  findOriginals,
   listAdminWishes,
+  mergeWish,
   moderateWish,
   moderateWishes,
 } from "./admin-wishes";
 import { PAGE_SIZE } from "./board";
+import { setVote } from "./votes";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -355,6 +358,150 @@ describe("bulk moderation", () => {
     expect(await row(a.id)).toMatchObject({
       status: "declined",
       studioReply: "Не в духе игры.",
+    });
+  });
+});
+
+describe("merging duplicates", () => {
+  async function voters(count: number) {
+    return db
+      .insert(user)
+      .values(
+        Array.from({ length: count }, (_, i) => ({
+          nickname: `Voter_${i}_${randomUUID().slice(0, 4)}`,
+          email: `${randomUUID()}@example.com`,
+        })),
+      )
+      .returning({ id: user.id });
+  }
+
+  it("moves the votes once per player and hides the duplicate", async () => {
+    const { admin, village } = await setup();
+    const [a, b, c] = await voters(3);
+    const original = await addWish(village, { title: "Режим на время" });
+    const duplicate = await addWish(village, { title: "Режим с таймером" });
+    // b voted for both: one vote stays.
+    await db.insert(votes).values([
+      { wishId: original.id, userId: a!.id },
+      { wishId: original.id, userId: b!.id },
+      { wishId: duplicate.id, userId: b!.id },
+      { wishId: duplicate.id, userId: c!.id },
+    ]);
+    await db.update(wishes).set({ votesCount: 2 });
+
+    const result = await mergeWish(admin, duplicate.id, original.id);
+
+    expect(result).toEqual({ gameId: village, movedVotes: 1 });
+    expect(await row(original.id)).toMatchObject({ votesCount: 3 });
+    expect(await row(duplicate.id)).toMatchObject({
+      votesCount: 0,
+      hidden: true,
+      hiddenReason: "duplicate",
+      mergedIntoId: original.id,
+    });
+    expect(await db.$count(votes, eq(votes.wishId, original.id))).toBe(3);
+    expect(await db.$count(votes, eq(votes.wishId, duplicate.id))).toBe(0);
+    const [entry] = await journal();
+    expect(entry).toMatchObject({
+      action: "wish.merge",
+      targetId: duplicate.id,
+      reason: "duplicate",
+      after: expect.objectContaining({
+        mergedIntoId: original.id,
+        movedVotes: 1,
+        originalVotesCount: 3,
+      }),
+    });
+  });
+
+  it("leaves no vote on the duplicate when players vote during the merge", async () => {
+    const { admin, village } = await setup();
+    const original = await addWish(village, { title: "Режим на время" });
+    const duplicate = await addWish(village, { title: "Режим с таймером" });
+    const players = (await voters(20)).map((p, i) => ({
+      id: p.id,
+      nickname: `Voter_${i}`,
+      email: `voter-${i}@example.com`,
+      emailVerified: true,
+      role: "user" as const,
+      createdAt: new Date(Date.now() - 7 * DAY_MS),
+    }));
+
+    const voting = players.map((player) =>
+      setVote(player, duplicate.id, true).catch(() => "refused"),
+    );
+    await Promise.all([mergeWish(admin, duplicate.id, original.id), ...voting]);
+
+    expect(await db.$count(votes, eq(votes.wishId, duplicate.id))).toBe(0);
+    expect((await row(duplicate.id)).votesCount).toBe(0);
+    expect((await row(original.id)).votesCount).toBe(
+      await db.$count(votes, eq(votes.wishId, original.id)),
+    );
+  });
+
+  it("refuses itself, another game, a hidden original and a second merge", async () => {
+    const { admin, village, garden } = await setup();
+    const original = await addWish(village, { title: "Режим на время" });
+    const duplicate = await addWish(village, { title: "Режим с таймером" });
+    const elsewhere = await addWish(garden, { title: "Режим в саду" });
+    const hidden = await addWish(village, {
+      title: "Скрытый режим",
+      hidden: true,
+      hiddenReason: "spam",
+    });
+
+    const refused = (from: string, to: string) =>
+      expect(mergeWish(admin, from, to)).rejects.toMatchObject({
+        code: "VALIDATION_ERROR",
+        fields: { targetId: expect.any(String) },
+      });
+    await refused(duplicate.id, duplicate.id);
+    await refused(duplicate.id, elsewhere.id);
+    await refused(duplicate.id, hidden.id);
+    await refused(duplicate.id, randomUUID());
+
+    await mergeWish(admin, duplicate.id, original.id);
+    await refused(duplicate.id, original.id);
+    // Nor can something be merged into the duplicate now.
+    const third = await addWish(village, { title: "Третий режим" });
+    await refused(third.id, duplicate.id);
+    expect((await journal()).map((e) => e.action)).toEqual(["wish.merge"]);
+  });
+
+  it("suggests the closest titles of the same game, visible ones only", async () => {
+    const { village, garden } = await setup();
+    const duplicate = await addWish(village, {
+      title: "Тёмная тема оформления",
+    });
+    await addWish(village, { title: "Тёмная тема" });
+    await addWish(village, { title: "Больше уровней" });
+    await addWish(village, {
+      title: "Тёмная тема ночью",
+      hidden: true,
+      hiddenReason: "spam",
+    });
+    await addWish(garden, { title: "Тёмная тема сада" });
+
+    const titles = async (search?: string) =>
+      (await findOriginals(duplicate.id, search)).map((w) => w.title);
+    expect((await titles())[0]).toBe("Тёмная тема");
+    expect(await titles()).not.toContain("Тёмная тема ночью");
+    expect(await titles()).not.toContain("Тёмная тема сада");
+    expect(await titles()).not.toContain("Тёмная тема оформления");
+    expect(await titles("уровн")).toEqual(["Больше уровней"]);
+  });
+
+  it("forgets the original when a merged duplicate is shown again", async () => {
+    const { admin, village } = await setup();
+    const original = await addWish(village, { title: "Режим на время" });
+    const duplicate = await addWish(village, { title: "Режим с таймером" });
+    await mergeWish(admin, duplicate.id, original.id);
+
+    await moderateWish(admin, duplicate.id, patch({ hidden: false }));
+
+    expect(await row(duplicate.id)).toMatchObject({
+      hidden: false,
+      mergedIntoId: null,
     });
   });
 });

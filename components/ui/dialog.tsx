@@ -30,7 +30,9 @@ export function DialogContent({
 }: DialogContentProps) {
   return (
     <RadixDialog.Portal>
-      <RadixDialog.Overlay className="fixed inset-0 z-50 grid place-items-end overflow-y-auto bg-ink/40 data-[state=closed]:animate-overlay-out data-[state=open]:animate-overlay-in md:place-items-center md:p-6">
+      {/* "safe": a dialog taller than the screen starts at its top and
+          scrolls, instead of spilling over the top edge out of reach. */}
+      <RadixDialog.Overlay className="fixed inset-0 z-50 grid place-items-end-safe overflow-y-auto bg-ink/40 data-[state=closed]:animate-overlay-out data-[state=open]:animate-overlay-in md:place-items-center-safe md:p-6">
         <RadixDialog.Content
           className={cn(
             "relative w-full bg-surface p-6 pb-8 shadow-md md:rounded-lg md:pb-6",

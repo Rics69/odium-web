@@ -1,6 +1,6 @@
 import type { Metadata, Route } from "next";
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { BoardProvider } from "@/components/board/board-context";
 import { VoteButton } from "@/components/board/vote-button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import { TextLink } from "@/components/ui/text-link";
 import { AuthorActions, ShareButton } from "@/components/wish/wish-actions";
 import { formatDateTime, t } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/server/session";
-import { getWish } from "@/lib/server/wishes";
+import { findMergedOriginal, getWish } from "@/lib/server/wishes";
 import { hiddenReasonLabel, statusLabel, typeLabel } from "@/lib/wish-labels";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -44,7 +44,15 @@ export default async function WishPage({
   params,
 }: PageProps<"/games/[slug]/wishes/[id]">) {
   const found = await load(params);
-  if (!found) notFound();
+  if (!found) {
+    // A merged duplicate is hidden: everyone else goes to its original.
+    const { id } = await params;
+    const original = UUID.test(id) ? await findMergedOriginal(id) : null;
+    if (original) {
+      redirect(`/games/${original.slug}/wishes/${original.id}` as Route);
+    }
+    notFound();
+  }
   const { wish, viewer } = found;
   const closed = wish.status === "done" || wish.status === "declined";
 

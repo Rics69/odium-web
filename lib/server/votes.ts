@@ -77,8 +77,17 @@ export async function setVote(
       .set({
         votesCount: sql`${wishes.votesCount} + ${changed.length === 0 ? 0 : on ? 1 : -1}`,
       })
-      .where(eq(wishes.id, wishId))
+      // Checked again under the lock: a wish hidden or merged since the
+      // check above takes no vote, and the vote row goes back with it.
+      .where(
+        and(
+          eq(wishes.id, wishId),
+          eq(wishes.hidden, false),
+          isNull(wishes.deletedAt),
+        ),
+      )
       .returning({ votesCount: wishes.votesCount });
-    return { votesCount: row!.votesCount, votedByMe: on };
+    if (!row) throw new ApiError("NOT_FOUND");
+    return { votesCount: row.votesCount, votedByMe: on };
   });
 }

@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, isNull, ne } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
 import { games, stopWords, user, votes, wishes } from "@/lib/db/schema";
 import { t } from "@/lib/i18n";
@@ -11,6 +12,8 @@ import { hitRateLimit } from "./rate-limit";
 import type { CurrentUser } from "./session";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+// The wish a merged duplicate points to.
+const originals = alias(wishes, "original");
 
 /** What the API gives about a wish (the board, the wish page, the forms). */
 export type WishView = {
@@ -240,6 +243,31 @@ export async function getWish(
     editableUntil: until?.toISOString() ?? null,
     canDelete: isAuthor && isNew(wish),
   };
+}
+
+/**
+ * Where a merged duplicate's address leads (spec, section 6): its original,
+ * if that is visible on a published game. Links shared before the merge
+ * keep working for everyone.
+ */
+export async function findMergedOriginal(
+  wishId: string,
+): Promise<{ slug: string; id: string } | null> {
+  const [row] = await db
+    .select({ slug: games.slug, id: originals.id })
+    .from(wishes)
+    .innerJoin(originals, eq(originals.id, wishes.mergedIntoId))
+    .innerJoin(games, eq(games.id, originals.gameId))
+    .where(
+      and(
+        eq(wishes.id, wishId),
+        isNull(wishes.deletedAt),
+        eq(originals.hidden, false),
+        isNull(originals.deletedAt),
+        eq(games.published, true),
+      ),
+    );
+  return row ?? null;
 }
 
 /** The author's own wish, not deleted, or 404 for anyone else. */

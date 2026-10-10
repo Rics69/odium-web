@@ -25,6 +25,7 @@ import {
   type WishType,
 } from "@/lib/validation/wishes";
 import { hiddenReasonLabel, statusLabel } from "@/lib/wish-labels";
+import { MergePanel, type MergeResult } from "./merge-panel";
 
 type Reason = (typeof moderatorReasons)[number];
 type Errors = Record<string, string | undefined>;
@@ -45,11 +46,13 @@ export function WishEditor({
   onClose,
   onSaved,
   onDeleted,
+  onMerged,
 }: {
   wish: AdminWish;
   onClose: () => void;
   onSaved: (wish: AdminWish) => void;
   onDeleted: (id: string) => void;
+  onMerged: (result: MergeResult) => void;
 }) {
   const toast = useToast();
   const [status, setStatus] = useState<WishStatus>(wish.status);
@@ -313,6 +316,14 @@ export function WishEditor({
               )}
             </Field>
           </fieldset>
+
+          {wish.mergedInto ? (
+            <p className="rounded-md bg-paper px-4 py-3 text-sm">
+              {t("admin.wishes.mergedInto", { title: wish.mergedInto.title })}
+            </p>
+          ) : (
+            <MergePanel wish={wish} onMerged={onMerged} />
+          )}
 
           {formError && (
             <p role="alert" className="text-error">
