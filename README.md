@@ -30,6 +30,7 @@ docker compose up -d --build
 
 - Тестовые данные: `docker compose run --rm migrate npm run db:seed`, затем `docker compose up -d --force-recreate app` (сайт кэширует прочитанное из базы).
 - Первый админ: `docker compose run --rm migrate npm run create-admin -- --email owner@example.com` — пароль покажется один раз, смените его в профиле.
+- Фоновые задачи — сервис `jobs`: при запуске и дальше раз в сутки. Что он сделал и ошибки: `docker compose logs jobs`.
 - Остановить: `docker compose down` — база и загруженные картинки остаются в томах Docker.
 
 ## Команды
@@ -48,6 +49,7 @@ docker compose up -d --build
 | `npm run db:studio` | Drizzle Studio — просмотр базы в браузере |
 | `npm run db:generate-wishes` | 10 000 пожеланий с голосами на «Неоновом саде» для замеров скорости; `-- --clean` убирает их |
 | `npm run create-admin -- --email … [--nickname …]` | Создать админа с подтверждённой почтой и случайным паролем или сделать админом существующего игрока |
+| `npm run jobs:daily` | Фоновые задачи один раз: окончательное удаление пожеланий через 30 дней, неподтверждённых аккаунтов через 7 дней, старых окон лимитов, просроченных сессий и ссылок, неиспользуемых картинок; сверка счётчиков голосов. На сервере их раз в сутки запускает сервис `jobs` |
 | `npm test` | Юнит-тесты (Vitest), `test:watch` — с перезапуском при изменениях |
 | `npm run test:e2e` | E2E-тесты (Playwright) |
 

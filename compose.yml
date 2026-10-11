@@ -43,6 +43,25 @@ services:
         condition: service_healthy
     restart: "no"
 
+  # The daily jobs (step 4.8): once at start, then every 24 hours. A run
+  # that overlaps another one skips itself (a Postgres advisory lock).
+  jobs:
+    build:
+      context: .
+      target: migrator
+    restart: unless-stopped
+    environment: *app-env
+    volumes:
+      # It removes uploaded images nothing points to any more.
+      - uploads:/app/storage
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command:
+      - sh
+      - -c
+      - "while true; do npm run jobs:daily; sleep 86400; done"
+
   app:
     build:
       context: .

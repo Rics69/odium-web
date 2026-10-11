@@ -1,5 +1,12 @@
 import "server-only";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import { env } from "@/lib/env";
 import type { ImageStorage } from ".";
@@ -35,5 +42,25 @@ export const diskStorage: ImageStorage = {
     } catch {
       return null;
     }
+  },
+
+  async list() {
+    let names: string[];
+    try {
+      names = await readdir(directory());
+    } catch {
+      return [];
+    }
+    const files = [];
+    for (const name of names.filter((name) => SAFE_NAME.test(name))) {
+      const { mtime } = await stat(path.join(directory(), name));
+      files.push({ name, url: `${UPLOADS_PATH}${name}`, savedAt: mtime });
+    }
+    return files;
+  },
+
+  async remove(name) {
+    if (!SAFE_NAME.test(name)) throw new Error(`Unsafe file name: ${name}`);
+    await rm(path.join(directory(), name), { force: true });
   },
 };
