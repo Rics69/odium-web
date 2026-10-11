@@ -1,4 +1,5 @@
 import "server-only";
+import type { AdminActionName, AdminTarget } from "@/lib/admin-actions";
 import { db } from "@/lib/db";
 import { adminLog } from "@/lib/db/schema";
 import type { CurrentUser } from "./session";
@@ -8,13 +9,9 @@ export type AdminTransaction = Parameters<
   Parameters<typeof db.transaction>[0]
 >[0];
 
-/** What an admin acts on (spec, section 6). */
-export type AdminTarget =
-  "wish" | "user" | "game" | "studio" | "stop_words" | "blocked_domains";
-
 export type AdminLogEntry = {
-  /** What was done, as `<target>.<verb>`: "wish.hide", "user.ban". */
-  action: `${AdminTarget}.${string}`;
+  /** What was done, from the list in lib/admin-actions.ts. */
+  action: AdminActionName;
   targetType: AdminTarget;
   targetId: string;
   /** The changed fields as they were and as they became. */

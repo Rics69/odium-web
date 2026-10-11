@@ -86,6 +86,14 @@ export default async function AdminUserPage({
                 ))}
               </ol>
             )}
+            {user.history.length > 0 && (
+              <TextLink
+                href={`/admin/log?type=user&target=${user.id}` as Route}
+                className="w-fit text-sm"
+              >
+                {t("admin.users.historyAll")}
+              </TextLink>
+            )}
           </section>
 
           <section className="flex flex-col gap-4">

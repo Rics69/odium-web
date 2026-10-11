@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import { EmptyState } from "@/components/ui/empty-state";
-import { t } from "@/lib/i18n";
 
 /** A section of the admin: its title, then the work. */
 export function AdminPage({
@@ -16,9 +14,4 @@ export function AdminPage({
       {children}
     </div>
   );
-}
-
-/** A section whose step of the plan is still ahead. */
-export function SectionSoon({ text }: { text: string }) {
-  return <EmptyState title={t("admin.soonTitle")} text={text} />;
 }
