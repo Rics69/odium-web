@@ -113,6 +113,22 @@ describe("games in the admin", () => {
     });
   });
 
+  it("sees no change in the same stores and screenshots", async () => {
+    // Postgres keeps jsonb keys in its own order: url before store.
+    const admin = await anAdmin();
+    const values = form({
+      platforms: [{ store: "rustore", url: "https://rustore.ru/app" }],
+      screenshots: [
+        { url: "/uploads/a.webp", width: 1080, height: 1920, alt: "Меню" },
+      ],
+    });
+    const { id } = await createGame(admin, values);
+
+    expect(await updateGame(admin, id, values)).toMatchObject({
+      changed: false,
+    });
+  });
+
   it("deletes only a game without wishes", async () => {
     const admin = await anAdmin();
     const empty = await createGame(admin, form({ slug: "empty" }));

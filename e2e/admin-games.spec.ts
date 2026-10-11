@@ -52,6 +52,12 @@ test("an admin creates a game with a cover, publishes it and deletes it", async 
   await page.getByRole("button", { name: "Сохранить" }).click();
   await expect(page.getByText("Игра создана")).toBeVisible();
   await expect(page).toHaveURL(/\/admin\/games\/[0-9a-f-]{36}$/);
+  // An edit saves in place: one form, the new value in it.
+  await page.getByLabel("Подзаголовок").fill("Проверка правки");
+  await page.getByRole("button", { name: "Сохранить" }).click();
+  await expect(page.getByText("Сохранено")).toBeVisible();
+  await expect(page.getByLabel("Подзаголовок")).toHaveCount(1);
+  await expect(page.getByLabel("Подзаголовок")).toHaveValue("Проверка правки");
 
   // On the site at once: the catalogue, the page, the cover, the store.
   const catalogue = await (await page.request.get("/api/games")).json();

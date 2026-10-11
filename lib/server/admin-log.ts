@@ -48,3 +48,33 @@ export function adminAction<T>(
     }),
   );
 }
+
+/** JSON with object keys sorted: Postgres keeps jsonb keys in its own order. */
+function stable(value: unknown): string {
+  return JSON.stringify(value, (_key, item: unknown) =>
+    item && typeof item === "object" && !Array.isArray(item)
+      ? Object.fromEntries(
+          Object.entries(item).sort(([a], [b]) => a.localeCompare(b)),
+        )
+      : item,
+  );
+}
+
+/**
+ * The fields of `after` that differ from `before`, as they were and as
+ * they became: what a form's save puts in the journal.
+ */
+export function changedFields<T extends Record<string, unknown>>(
+  before: Partial<T>,
+  after: T,
+): { was: Record<string, unknown>; now: Record<string, unknown> } {
+  const was: Record<string, unknown> = {};
+  const now: Record<string, unknown> = {};
+  for (const key of Object.keys(after)) {
+    if (stable(before[key]) !== stable(after[key])) {
+      was[key] = before[key];
+      now[key] = after[key];
+    }
+  }
+  return { was, now };
+}

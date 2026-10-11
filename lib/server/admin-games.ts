@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { games, wishes } from "@/lib/db/schema";
 import { t } from "@/lib/i18n";
 import type { GameInput } from "@/lib/validation/admin-games";
-import { adminAction } from "./admin-log";
+import { adminAction, changedFields } from "./admin-log";
 import { ApiError } from "./http";
 import type { CurrentUser } from "./session";
 import { isUniqueViolation } from "./wishes";
@@ -55,19 +55,6 @@ const slugTaken = () =>
     fields: { slug: t("admin.games.errors.slugTaken") },
   });
 
-/** The fields that differ, as they were and as they became. */
-function difference(before: GameRow, after: GameInput) {
-  const was: Record<string, unknown> = {};
-  const now: Record<string, unknown> = {};
-  for (const key of Object.keys(after) as (keyof GameInput)[]) {
-    if (JSON.stringify(before[key]) !== JSON.stringify(after[key])) {
-      was[key] = before[key];
-      now[key] = after[key];
-    }
-  }
-  return { was, now };
-}
-
 /** A new game, a draft until "published" is ticked. */
 export async function createGame(
   admin: Pick<CurrentUser, "id">,
@@ -110,7 +97,7 @@ export async function updateGame(
         .where(eq(games.id, id))
         .for("update");
       if (!game) throw new ApiError("NOT_FOUND");
-      const { was, now } = difference(game, input);
+      const { was, now } = changedFields(game, input);
       if (Object.keys(now).length === 0) {
         return { slugs: [game.slug], changed: false };
       }
