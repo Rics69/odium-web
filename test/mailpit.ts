@@ -10,8 +10,9 @@ export type CaughtLetter = {
 };
 
 /**
- * The latest letter to an address, with that subject if given; waits a
- * little for it to arrive.
+ * The latest letter to an address, with that subject if given. Letters go
+ * out in the background, and the first one of a run renders slowly on a
+ * busy CI machine: it waits up to 10 seconds.
  */
 export async function findLetter(
   to: string,
@@ -20,7 +21,7 @@ export async function findLetter(
   const query = encodeURIComponent(
     subject ? `to:"${to}" subject:"${subject}"` : `to:"${to}"`,
   );
-  for (let attempt = 0; attempt < 20; attempt++) {
+  for (let attempt = 0; attempt < 100; attempt++) {
     const { messages } = (await fetch(
       `${MAILPIT_URL}/api/v1/search?query=${query}`,
     ).then((response) => response.json())) as { messages: { ID: string }[] };

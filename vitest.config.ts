@@ -23,6 +23,8 @@ export default defineConfig({
     // All test files share one database, so they run one after another.
     fileParallelism: false,
     restoreMocks: true,
+    // Some tests wait for a letter in Mailpit (up to 10 s, test/mailpit.ts).
+    testTimeout: 20_000,
     unstubEnvs: true,
   },
 });
