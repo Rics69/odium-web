@@ -21,7 +21,8 @@
     "db:seed": "tsx --conditions=react-server scripts/seed.ts",
     "create-admin": "tsx --conditions=react-server scripts/create-admin.ts",
     "db:generate-wishes": "tsx --conditions=react-server scripts/generate-wishes.ts",
-    "jobs:daily": "tsx --conditions=react-server scripts/daily-jobs.ts"
+    "jobs:daily": "tsx --conditions=react-server scripts/daily-jobs.ts",
+    "icons": "tsx scripts/make-icons.ts"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",

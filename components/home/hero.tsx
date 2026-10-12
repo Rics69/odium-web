@@ -83,7 +83,7 @@ export function Hero({
         >
           <span
             aria-hidden
-            className="pointer-events-none absolute -inset-x-5 -inset-y-3.5 text-ink/70 transition-[rotate] duration-300 group-hover:-rotate-2"
+            className="pointer-events-none absolute -inset-x-3.5 -inset-y-3.5 text-ink/70 transition-[rotate] duration-300 group-hover:-rotate-2 md:-inset-x-5"
           >
             <Doodle name="outline" draw="view" className="size-full" />
           </span>

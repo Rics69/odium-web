@@ -42,7 +42,7 @@ export function Button({
       {doodle && (
         <motion.span
           aria-hidden
-          className="pointer-events-none absolute -inset-x-5 -inset-y-3.5 text-ink/70"
+          className="pointer-events-none absolute -inset-x-3.5 -inset-y-3.5 text-ink/70 md:-inset-x-5"
           variants={{ hover: { rotate: [0, -1.5, 1, 0] } }}
           transition={{ duration: 0.45 }}
         >
@@ -89,7 +89,7 @@ export function LinkButton({
       {doodle && (
         <span
           aria-hidden
-          className="pointer-events-none absolute -inset-x-5 -inset-y-3.5 text-ink/70 transition-[rotate] duration-300 group-hover:-rotate-2"
+          className="pointer-events-none absolute -inset-x-3.5 -inset-y-3.5 text-ink/70 transition-[rotate] duration-300 group-hover:-rotate-2 md:-inset-x-5"
         >
           <Doodle name="outline" draw="view" className="size-full" />
         </span>

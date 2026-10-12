@@ -76,6 +76,13 @@ test("an admin creates a game with a cover, publishes it and deletes it", async 
   await expect(
     game.getByRole("img", { name: `Обложка игры «Игра ${tag}»` }),
   ).toBeVisible();
+  // The link picture reads the uploaded cover from the storage.
+  const ogImage = await game
+    .locator('meta[property="og:image"]')
+    .getAttribute("content");
+  const picture = await page.request.get(ogImage!);
+  expect(picture.status()).toBe(200);
+  expect(picture.headers()["content-type"]).toBe("image/png");
   await game.close();
 
   await page.getByRole("button", { name: "Удалить игру" }).click();
