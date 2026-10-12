@@ -34,6 +34,7 @@ export async function generateMetadata({
     description:
       wish.body.slice(0, 160) ||
       t("board.description", { game: wish.game.title }),
+    alternates: { canonical: `/games/${wish.game.slug}/wishes/${wish.id}` },
     // Hidden wishes are not for search engines (spec, section 10).
     robots: wish.hidden ? { index: false, follow: false } : undefined,
   };

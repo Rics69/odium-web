@@ -28,6 +28,7 @@ import { formatDate, t, tp } from "@/lib/i18n";
 import { findBoardGame, topWishes } from "@/lib/server/board";
 import { getPublishedGame } from "@/lib/server/games";
 import { getCurrentUser } from "@/lib/server/session";
+import { siteOpenGraph } from "@/lib/seo";
 import { parseTrailer } from "@/lib/trailer";
 
 async function loadGame(params: PageProps<"/games/[slug]">["params"]) {
@@ -45,7 +46,7 @@ export async function generateMetadata({
     title: game.title,
     description,
     alternates: { canonical: `/games/${game.slug}` },
-    openGraph: { title: game.title, description, type: "website" },
+    openGraph: { ...siteOpenGraph, title: game.title, description },
   };
 }
 

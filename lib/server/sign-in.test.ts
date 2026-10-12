@@ -107,6 +107,13 @@ describe("sign-in", () => {
   });
 
   it("checks no more than ten passwords when guesses come at once", async () => {
+    // In the middle of a 15-minute window: guesses that straddle the edge
+    // of two fixed windows are counted in both (up to 20), as fixed
+    // windows go (spec, section 7). The run used to fail now and then
+    // when it fell on an edge.
+    const window = 15 * 60 * 1000;
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Math.floor(Date.now() / window) * window + window / 2);
     const player = await createPlayer();
 
     const results = await Promise.all(

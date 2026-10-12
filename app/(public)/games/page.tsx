@@ -10,6 +10,7 @@ import { getPublishedGames } from "@/lib/server/games";
 export const metadata: Metadata = {
   title: t("games.title"),
   description: t("games.description"),
+  alternates: { canonical: "/games" },
 };
 
 export default async function GamesPage() {

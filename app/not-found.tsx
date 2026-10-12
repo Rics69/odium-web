@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { Doodle } from "@/components/doodles/doodle";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { LinkButton } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
+
+export const metadata: Metadata = { title: t("notFound.title") };
 
 // Any unknown address and every notFound(). The zero in 404 is drawn by hand.
 export default function NotFound() {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { About } from "@/components/home/about";
 import { GamesGallery } from "@/components/home/games-gallery";
@@ -10,6 +11,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { t } from "@/lib/i18n";
 import { getPublishedGames } from "@/lib/server/games";
 import { getStudioInfo } from "@/lib/server/studio";
+
+export const metadata: Metadata = {
+  title: { absolute: t("site.homeTitle") },
+  alternates: { canonical: "/" },
+};
 
 // Little text, many things to look at: the word, the games, a few numbers,
 // the team. The footer below adds the studio's goal.

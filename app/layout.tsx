@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { env } from "@/lib/env";
 import { locale, t } from "@/lib/i18n";
+import { siteOpenGraph } from "@/lib/seo";
 import { displayFace, inter } from "./fonts";
 import "./globals.css";
 
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.SITE_URL),
   title: { default: "Odium", template: "%s · Odium" },
   description: t("site.description"),
+  openGraph: siteOpenGraph,
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

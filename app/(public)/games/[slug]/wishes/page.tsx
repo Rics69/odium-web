@@ -17,6 +17,8 @@ export async function generateMetadata({
   return {
     title: `${t("board.title")} · ${game.title}`,
     description: t("board.description", { game: game.title }),
+    // One address for every sort: ?sort=new is the same board.
+    alternates: { canonical: `/games/${game.slug}/wishes` },
   };
 }
 
