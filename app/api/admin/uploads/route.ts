@@ -1,4 +1,4 @@
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { ApiError, apiRoute } from "@/lib/server/http";
 import { MAX_UPLOAD_BYTES, saveImage } from "@/lib/server/images";
 import { adminOnly } from "@/lib/server/session";

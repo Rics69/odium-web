@@ -1,10 +1,13 @@
 "use client";
 
-import { animate, useInView, useReducedMotionConfig } from "motion/react";
+import { useInView, useReducedMotionConfig } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
+const DURATION_MS = 900;
+
 // A number that counts up from zero when it scrolls into view. Without
-// JavaScript (or motion) it simply shows the value.
+// JavaScript (or motion) it simply shows the value. A frame loop, not
+// Motion's animate: that would bring its whole animation engine for a count.
 export function CountUp({
   value,
   className,
@@ -19,12 +22,15 @@ export function CountUp({
 
   useEffect(() => {
     if (!inView || reduceMotion) return;
-    const controls = animate(0, value, {
-      duration: 0.9,
-      ease: "easeOut",
-      onUpdate: (latest) => setShown(Math.round(latest)),
+    let start: number | undefined;
+    let frame = requestAnimationFrame(function tick(now) {
+      start ??= now;
+      const progress = Math.min((now - start) / DURATION_MS, 1);
+      // Ease-out: quick at first, settling on the value.
+      setShown(Math.round(value * (1 - (1 - progress) ** 3)));
+      if (progress < 1) frame = requestAnimationFrame(tick);
     });
-    return () => controls.stop();
+    return () => cancelAnimationFrame(frame);
   }, [inView, reduceMotion, value]);
 
   return (

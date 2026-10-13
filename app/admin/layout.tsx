@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AdminNav } from "@/components/admin/admin-nav";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { requireAdminPage } from "@/lib/server/session";
 
 export const metadata: Metadata = {

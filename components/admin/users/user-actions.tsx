@@ -7,7 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, Select, Textarea } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { ApiRequestError, apiSend } from "@/lib/api-client";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import type { AdminUser } from "@/lib/server/admin-users";
 import {
   BAN_REASON_MAX,

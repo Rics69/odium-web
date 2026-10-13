@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Field, Textarea } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { ApiRequestError, apiSend } from "@/lib/api-client";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 
 /**
  * A list kept as text, one entry per line: stop words, blocked domains.

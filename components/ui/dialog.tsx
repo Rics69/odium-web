@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog as RadixDialog } from "radix-ui";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export const Dialog = RadixDialog.Root;
@@ -28,12 +28,27 @@ export function DialogContent({
   fullScreenOnPhone = false,
   className,
 }: DialogContentProps) {
+  // Radix gives the focus back to a DialogTrigger only; a dialog opened from
+  // code (a vote by a guest) would drop it to the top of the page. So the
+  // focus goes back to whatever had it when the dialog opened.
+  const returnFocus = useRef<HTMLElement | null>(null);
+
   return (
     <RadixDialog.Portal>
       {/* "safe": a dialog taller than the screen starts at its top and
           scrolls, instead of spilling over the top edge out of reach. */}
       <RadixDialog.Overlay className="fixed inset-0 z-50 grid place-items-end-safe overflow-y-auto bg-ink/40 data-[state=closed]:animate-overlay-out data-[state=open]:animate-overlay-in md:place-items-center-safe md:p-6">
         <RadixDialog.Content
+          onOpenAutoFocus={() => {
+            returnFocus.current = document.activeElement as HTMLElement | null;
+          }}
+          onCloseAutoFocus={(event) => {
+            const element = returnFocus.current;
+            if (element && element !== document.body && element.isConnected) {
+              event.preventDefault();
+              element.focus();
+            }
+          }}
           className={cn(
             "relative w-full bg-surface p-6 pb-8 shadow-md md:rounded-lg md:pb-6",
             fullScreenOnPhone

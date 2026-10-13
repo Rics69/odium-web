@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "framer-motion";
 import Image from "next/image";
 import { Dialog as RadixDialog } from "radix-ui";
 import { useState, type CSSProperties, type KeyboardEvent } from "react";
@@ -128,7 +128,7 @@ function Lightbox({
               mode="popLayout"
             >
               {shot && (
-                <motion.div
+                <m.div
                   key={shot.url}
                   custom={direction}
                   variants={slide}
@@ -154,7 +154,7 @@ function Lightbox({
                     draggable={false}
                     className="h-full max-h-[78dvh] w-auto rounded-md object-contain select-none"
                   />
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>

@@ -7,7 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { ApiRequestError, apiGet, apiSend } from "@/lib/api-client";
-import { t, tp } from "@/lib/i18n";
+import { t, tp } from "@/lib/i18n/admin";
 import type { AdminWish } from "@/lib/server/admin-wishes";
 import { statusLabel } from "@/lib/wish-labels";
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { slugSchema } from "./games";
 import { wishInputSchema, wishStatuses, wishTypes } from "./wishes";
 

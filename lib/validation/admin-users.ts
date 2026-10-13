@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 
 // Players in the admin (spec, section 6): search, bans and roles.
 

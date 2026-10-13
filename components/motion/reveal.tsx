@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "framer-motion";
 import type { ReactNode } from "react";
 import { spring } from "./presets";
 
@@ -14,7 +14,7 @@ type RevealProps = {
 // Never wrap the main heading of a page: it must be visible immediately (LCP).
 export function Reveal({ children, delay = 0, className }: RevealProps) {
   return (
-    <motion.div
+    <m.div
       className={className}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -22,6 +22,6 @@ export function Reveal({ children, delay = 0, className }: RevealProps) {
       transition={{ ...spring.soft, delay }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

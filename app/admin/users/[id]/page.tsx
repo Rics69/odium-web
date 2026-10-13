@@ -6,7 +6,8 @@ import { UserActions } from "@/components/admin/users/user-actions";
 import { UserBadges } from "@/components/admin/users/user-badges";
 import { Badge } from "@/components/ui/badge";
 import { TextLink } from "@/components/ui/text-link";
-import { formatDateTime, t, tp } from "@/lib/i18n";
+import { formatDateTime } from "@/lib/i18n";
+import { t, tp } from "@/lib/i18n/admin";
 import {
   getAdminUser,
   type AdminUserHistoryEntry,

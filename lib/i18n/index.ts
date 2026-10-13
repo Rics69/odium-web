@@ -13,7 +13,7 @@ export type PluralForms = {
 type Join<K extends string, P extends string> = `${K}.${P}`;
 
 // "nav.games"-style paths to the leaves of the dictionary of the given kind.
-type Paths<T, Leaf> = {
+export type Paths<T, Leaf> = {
   [K in keyof T & string]: T[K] extends Leaf
     ? K
     : T[K] extends PluralForms | string
@@ -25,14 +25,6 @@ export type MessageKey = Paths<typeof ru, string>;
 export type PluralKey = Paths<typeof ru, PluralForms>;
 type Params = Record<string, string | number>;
 
-function lookup(key: string): unknown {
-  return key.split(".").reduce<unknown>((node, part) => {
-    return typeof node === "object" && node !== null
-      ? (node as Record<string, unknown>)[part]
-      : undefined;
-  }, ru);
-}
-
 function fill(template: string, params?: Params) {
   if (!params) return template;
   return template.replace(/\{(\w+)\}/g, (match, name: string) =>
@@ -40,12 +32,16 @@ function fill(template: string, params?: Params) {
   );
 }
 
-/** Text by key, with {name} placeholders filled from params. */
-export function t(key: MessageKey, params?: Params): string {
-  return fill(lookup(key) as string, params);
+/**
+ * Made on first use: building an Intl formatter is not free (the relative
+ * time one takes 30 ms on a slow phone), and most pages need few of them.
+ */
+function once<T>(make: () => T): () => T {
+  let made: T | undefined;
+  return () => (made ??= make());
 }
 
-const pluralRules = new Intl.PluralRules(locale);
+const pluralRules = once(() => new Intl.PluralRules(locale));
 
 /** «1 голос», «3 голоса», «5 голосов»: picks the form and fills {count}. */
 export function formatPlural(
@@ -53,16 +49,36 @@ export function formatPlural(
   forms: PluralForms,
   params?: Params,
 ) {
-  const form = pluralRules.select(count) as keyof PluralForms;
+  const form = pluralRules().select(count) as keyof PluralForms;
   return fill(forms[form] ?? forms.other, { count, ...params });
 }
 
-/** Plural text by key, see formatPlural. */
-export function tp(key: PluralKey, count: number, params?: Params) {
-  return formatPlural(count, lookup(key) as PluralForms, params);
+/**
+ * `t` and `tp` over a dictionary: the site's here, the site's with the
+ * admin's in lib/i18n/admin.ts.
+ */
+export function translator<Dictionary extends object>(dictionary: Dictionary) {
+  const lookup = (key: string): unknown =>
+    key.split(".").reduce<unknown>((node, part) => {
+      return typeof node === "object" && node !== null
+        ? (node as Record<string, unknown>)[part]
+        : undefined;
+    }, dictionary);
+  return {
+    /** Text by key, with {name} placeholders filled from params. */
+    t: (key: Paths<Dictionary, string>, params?: Params): string =>
+      fill(lookup(key) as string, params),
+    /** Plural text by key, see formatPlural. */
+    tp: (key: Paths<Dictionary, PluralForms>, count: number, params?: Params) =>
+      formatPlural(count, lookup(key) as PluralForms, params),
+  };
 }
 
-const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+export const { t, tp } = translator(ru);
+
+const relative = once(
+  () => new Intl.RelativeTimeFormat(locale, { numeric: "auto" }),
+);
 
 const units: [Intl.RelativeTimeFormatUnit, number][] = [
   ["minute", 60],
@@ -82,28 +98,34 @@ export function formatRelativeTime(date: Date, now: Date = new Date()) {
   for (const unit of units) {
     if (Math.abs(seconds) >= unit[1]) chosen = unit;
   }
-  return relative.format(Math.round(seconds / chosen[1]), chosen[0]);
+  return relative().format(Math.round(seconds / chosen[1]), chosen[0]);
 }
 
-const dateFormat = new Intl.DateTimeFormat(locale, {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
+const dateFormat = once(
+  () =>
+    new Intl.DateTimeFormat(locale, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }),
+);
 
 /** «15 июня 2026 г.» from a date column ("2026-06-15"). */
 export function formatDate(isoDate: string) {
-  return dateFormat.format(new Date(`${isoDate}T00:00:00Z`));
+  return dateFormat().format(new Date(`${isoDate}T00:00:00Z`));
 }
 
-const dateTimeFormat = new Intl.DateTimeFormat(locale, {
-  dateStyle: "long",
-  timeStyle: "short",
-  timeZone: "Europe/Moscow",
-});
+const dateTimeFormat = once(
+  () =>
+    new Intl.DateTimeFormat(locale, {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: "Europe/Moscow",
+    }),
+);
 
 /** «15 октября 2026 г. в 18:30 по Москве»: most players are in Russia. */
 export function formatDateTime(date: Date) {
-  return t("time.moscow", { time: dateTimeFormat.format(date) });
+  return t("time.moscow", { time: dateTimeFormat().format(date) });
 }

@@ -9,7 +9,8 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextLink } from "@/components/ui/text-link";
 import { useToast } from "@/components/ui/toast";
 import { ApiRequestError, apiSend } from "@/lib/api-client";
-import { formatDateTime, t, tp } from "@/lib/i18n";
+import { formatDateTime } from "@/lib/i18n";
+import { t, tp } from "@/lib/i18n/admin";
 import type { AdminWish } from "@/lib/server/admin-wishes";
 import {
   adminWishPatchSchema,

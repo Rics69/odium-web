@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminPage } from "@/components/admin/admin-page";
 import { UserSearch } from "@/components/admin/users/user-search";
 import { UsersList } from "@/components/admin/users/users-list";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { listAdminUsers } from "@/lib/server/admin-users";
 import { requireAdminPage } from "@/lib/server/session";
 import { adminUsersQuerySchema } from "@/lib/validation/admin-users";

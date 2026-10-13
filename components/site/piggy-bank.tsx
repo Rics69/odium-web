@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useInView } from "motion/react";
+import { m, useInView } from "framer-motion";
 import { useId, useRef, type CSSProperties } from "react";
 import { useDoodleDrawing } from "@/components/doodles/doodle";
 import { ease } from "@/components/motion/presets";
@@ -55,7 +55,7 @@ export function PiggyBank({ label }: { label: string }) {
           </clipPath>
         </defs>
         <g clipPath={`url(#${clipId})`}>
-          <motion.rect
+          <m.rect
             x={0}
             width={170}
             height={130}
@@ -75,7 +75,7 @@ export function PiggyBank({ label }: { label: string }) {
           />
         ))}
         {COINS.map((coin) => (
-          <motion.circle
+          <m.circle
             key={coin}
             cx={91}
             r={6}

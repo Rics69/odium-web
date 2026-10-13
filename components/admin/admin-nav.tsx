@@ -4,7 +4,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 
 const sections: { href: Route; label: string }[] = [
   { href: "/admin", label: t("admin.sections.overview") },

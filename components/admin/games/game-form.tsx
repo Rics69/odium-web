@@ -13,7 +13,7 @@ import { TextLink } from "@/components/ui/text-link";
 import { useToast } from "@/components/ui/toast";
 import { ApiRequestError, apiSend } from "@/lib/api-client";
 import { statusLabel, storeLabel } from "@/lib/games";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import type { AdminGame } from "@/lib/server/admin-games";
 import { slugify } from "@/lib/slug";
 import {

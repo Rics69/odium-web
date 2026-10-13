@@ -23,7 +23,7 @@ const color = {
   surface: "#fffdf9",
   ink: "#1c1a17",
   ink2: "#5e5850",
-  ink3: "#8f887d",
+  ink3: "#726d64",
   line: "#e5dfd3",
   accent: "#2d46e6",
   white: "#ffffff",

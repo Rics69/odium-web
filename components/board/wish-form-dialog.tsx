@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -192,7 +192,7 @@ export function WishFormDialog({
             </Field>
             <AnimatePresence initial={false}>
               {shownSimilar.length > 0 && (
-                <motion.section
+                <m.section
                   aria-live="polite"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -229,7 +229,7 @@ export function WishFormDialog({
                       ))}
                     </ul>
                   </div>
-                </motion.section>
+                </m.section>
               )}
             </AnimatePresence>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
 import { spring } from "@/components/motion/presets";
 import { useToast } from "@/components/ui/toast";
@@ -68,7 +68,7 @@ export function VoteButton({
   }
 
   return (
-    <motion.button
+    <m.button
       type="button"
       onClick={toggle}
       aria-disabled={locked || undefined}
@@ -93,7 +93,7 @@ export function VoteButton({
           : !shown.votedByMe && "hover:border-accent hover:text-accent",
       )}
     >
-      <motion.svg
+      <m.svg
         aria-hidden
         viewBox="0 0 24 24"
         fill="none"
@@ -106,10 +106,10 @@ export function VoteButton({
         transition={spring.bouncy}
       >
         <path d="m6 15 6-6 6 6" />
-      </motion.svg>
+      </m.svg>
       <Odometer value={shown.votesCount} />
       <Burst key={bursts} active={bursts > 0} />
-    </motion.button>
+    </m.button>
   );
 }
 
@@ -125,7 +125,7 @@ function Odometer({ value }: { value: number }) {
   return (
     <span className="relative inline-flex h-5 overflow-hidden leading-5">
       <AnimatePresence initial={false} mode="popLayout" custom={direction}>
-        <motion.span
+        <m.span
           key={value}
           custom={direction}
           variants={{
@@ -139,7 +139,7 @@ function Odometer({ value }: { value: number }) {
           transition={spring.snappy}
         >
           {value}
-        </motion.span>
+        </m.span>
       </AnimatePresence>
     </span>
   );
@@ -162,7 +162,7 @@ function Burst({ active }: { active: boolean }) {
   return (
     <span aria-hidden className="pointer-events-none absolute inset-0">
       {PARTICLES.map((particle, index) => (
-        <motion.span
+        <m.span
           key={index}
           className="absolute top-1/2 left-1/2 rounded-full bg-accent"
           style={{ width: particle.size, height: particle.size }}

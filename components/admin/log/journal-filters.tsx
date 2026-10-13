@@ -9,7 +9,7 @@ import {
   adminTargetLabel,
   adminTargets,
 } from "@/lib/admin-actions";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import type { JournalQuery } from "@/lib/validation/admin-log";
 
 /** Who, what, on what: a GET form, so a filtered journal has an address. */

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "framer-motion";
 import { useId, type ReactNode } from "react";
 import { spring } from "@/components/motion/presets";
 import { cn } from "@/lib/cn";
@@ -58,7 +58,7 @@ export function SegmentedControl<T extends string>({
               className="sr-only"
             />
             {checked && (
-              <motion.span
+              <m.span
                 layoutId={id}
                 transition={spring.snappy}
                 className="absolute inset-0 rounded-sm bg-surface shadow-sm"

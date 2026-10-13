@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { ALT_MAX, SCREENSHOTS_MAX } from "@/lib/validation/admin-games";
 import type { Screenshot } from "@/lib/validation/games";
 import { UploadButton } from "./upload-button";

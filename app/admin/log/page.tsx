@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminPage } from "@/components/admin/admin-page";
 import { JournalFilters } from "@/components/admin/log/journal-filters";
 import { JournalList } from "@/components/admin/log/journal-list";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { listJournal, listJournalAdmins } from "@/lib/server/admin-journal";
 import { requireAdminPage } from "@/lib/server/session";
 import { journalQuerySchema } from "@/lib/validation/admin-log";

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { statusLabel } from "@/lib/games";
-import { t, tp } from "@/lib/i18n";
+import { t, tp } from "@/lib/i18n/admin";
 import { listAdminGames } from "@/lib/server/admin-games";
 import { requireAdminPage } from "@/lib/server/session";
 

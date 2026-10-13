@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { parseTrailer } from "@/lib/trailer";
 import {
   gameStatuses,

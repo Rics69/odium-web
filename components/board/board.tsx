@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "framer-motion";
 import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -16,7 +16,7 @@ import type { BoardPage } from "@/lib/server/board";
 import type { WishView } from "@/lib/server/wishes";
 import type { BoardQuery, BoardSort } from "@/lib/validation/wishes";
 import { BoardProvider, useBoard, type Viewer } from "./board-context";
-import { NewWishDialog } from "./wish-form-dialog";
+import { NewWishDialog } from "./lazy-wish-form";
 import { WishCard } from "./wish-card";
 
 /**
@@ -112,6 +112,8 @@ function BoardView({
         ]}
       />
 
+      {/* For screen readers: the cards' h3 titles need an h2 above them. */}
+      <h2 className="sr-only">{t("board.listTitle")}</h2>
       <div
         aria-busy={navigating}
         className={cn("transition-opacity", navigating && "opacity-60")}
@@ -125,14 +127,14 @@ function BoardView({
           <ul className="flex flex-col gap-4">
             <AnimatePresence initial={false}>
               {pages.wishes.map((wish) => (
-                <motion.li
+                <m.li
                   key={wish.id}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <WishCard wish={wish} slug={slug} />
-                </motion.li>
+                </m.li>
               ))}
             </AnimatePresence>
           </ul>

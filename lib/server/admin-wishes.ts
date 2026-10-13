@@ -15,7 +15,7 @@ import {
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
 import { games, user, votes, wishes } from "@/lib/db/schema";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import type {
   AdminWishBulk,
   AdminWishPatch,

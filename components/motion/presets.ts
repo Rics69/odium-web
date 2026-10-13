@@ -1,4 +1,4 @@
-import type { Transition } from "motion/react";
+import type { Transition } from "framer-motion";
 
 // Motion tokens. CSS counterparts live in app/globals.css (--ease-*).
 export const ease = {

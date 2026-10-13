@@ -2,7 +2,7 @@ import "server-only";
 import { asc, eq, getTableColumns, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { games, wishes } from "@/lib/db/schema";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import type { GameInput } from "@/lib/validation/admin-games";
 import { adminAction, changedFields } from "./admin-log";
 import { ApiError } from "./http";

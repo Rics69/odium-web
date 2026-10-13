@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminPage } from "@/components/admin/admin-page";
 import { AdminWishes } from "@/components/admin/wishes/admin-wishes";
 import { WishFilters } from "@/components/admin/wishes/wish-filters";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { listAdminWishes, listGameChoices } from "@/lib/server/admin-wishes";
 import { requireAdminPage } from "@/lib/server/session";
 import { adminWishesQuerySchema } from "@/lib/validation/admin-wishes";

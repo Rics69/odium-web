@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  motion,
+  m,
   useReducedMotionConfig,
   useScroll,
   useTransform,
-} from "motion/react";
+} from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, ViewTransition } from "react";
@@ -86,7 +86,7 @@ function GalleryItem({
 
   return (
     <li ref={ref} className={layout.box}>
-      <motion.div style={{ y: reduceMotion ? 0 : drift }}>
+      <m.div style={{ y: reduceMotion ? 0 : drift }}>
         <Reveal>
           <Link href={`/games/${game.slug}`} className="group block">
             <ViewTransition
@@ -138,7 +138,7 @@ function GalleryItem({
             </div>
           </Link>
         </Reveal>
-      </motion.div>
+      </m.div>
     </li>
   );
 }

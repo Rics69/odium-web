@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/field";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import type { AdminUsersQuery } from "@/lib/validation/admin-users";
 
 /** The search of the players list: a GET form, so it lives in the address. */

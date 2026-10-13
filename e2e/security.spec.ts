@@ -35,11 +35,12 @@ test("pages carry a nonce-based CSP and the other security headers", async ({
   expect(headers["x-powered-by"]).toBeUndefined();
 
   // Every script Next.js wrote into the page carries this request's nonce.
-  const nonces = await page
-    .locator("script:not([type='application/ld+json'])")
-    .evaluateAll((scripts) =>
-      scripts.map((script) => (script as HTMLScriptElement).nonce),
-    );
+  // Chunks loaded later (lazy components) are added by those scripts, which
+  // 'strict-dynamic' trusts; the test below checks they break nothing.
+  const html = await response!.text();
+  const nonces = [
+    ...html.matchAll(/<script(?![^>]*application\/ld\+json)[^>]*>/g),
+  ].map((tag) => tag[0].match(/nonce="([^"]*)"/)?.[1]);
   expect(nonces.length).toBeGreaterThan(0);
   expect(new Set(nonces)).toEqual(new Set([nonce]));
 });

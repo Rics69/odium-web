@@ -2,7 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { AdminPage } from "@/components/admin/admin-page";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { adminOverview } from "@/lib/server/admin-overview";
 import { requireAdminPage } from "@/lib/server/session";
 

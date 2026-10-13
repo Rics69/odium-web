@@ -21,7 +21,7 @@
   --color-surface: #fffdf9;
   --color-ink: #1c1a17;
   --color-ink-2: #5e5850;
-  --color-ink-3: #8f887d;
+  --color-ink-3: #726d64;
   --color-line: #e5dfd3;
   --color-line-strong: #cfc7b8;
   --color-add: #166534;
@@ -136,6 +136,8 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* The sticky header never covers what the keyboard or an anchor lands on. */
+    scroll-padding-top: 6rem;
     background-color: var(--color-paper);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;

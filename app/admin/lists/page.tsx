@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AdminPage } from "@/components/admin/admin-page";
 import { ListEditor } from "@/components/admin/studio/list-editor";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { getBlockedDomains, getStopWords } from "@/lib/server/admin-studio";
 import { requireAdminPage } from "@/lib/server/session";
 

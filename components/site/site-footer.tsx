@@ -44,12 +44,12 @@ export async function SiteFooter() {
         <p className="text-sm text-ink-2">{t("footer.copyright", { year })}</p>
       </div>
 
-      <p
+      {/* A pale picture of the word, not text: drawn by CSS, so neither
+          screen readers nor contrast checks take it for content. */}
+      <div
         aria-hidden
-        className="pointer-events-none mt-8 -mb-[0.2em] text-center font-display text-[24vw] leading-[0.8] text-line select-none"
-      >
-        ODIUM
-      </p>
+        className="pointer-events-none mt-8 -mb-[0.2em] text-center font-display text-[24vw] leading-[0.8] text-line select-none before:content-['ODIUM']"
+      />
     </footer>
   );
 }

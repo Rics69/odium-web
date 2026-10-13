@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "framer-motion";
 import {
   createContext,
   useCallback,
@@ -11,6 +11,7 @@ import {
 } from "react";
 import { Doodle } from "@/components/doodles/doodle";
 import { spring } from "@/components/motion/presets";
+import { t } from "@/lib/i18n";
 
 type Tone = "neutral" | "success" | "error";
 type ToastInput = { title: string; description?: string; tone?: Tone };
@@ -45,7 +46,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       {/* On a phone at the top: the bottom is where the thumb presses the
           buttons of sheets and bars, and a toast there would be in the way. */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] flex flex-col items-center gap-2 p-4 md:top-auto md:bottom-0 md:items-end md:p-6">
+      <div
+        role="region"
+        aria-label={t("common.notifications")}
+        className="pointer-events-none fixed inset-x-0 top-0 z-[60] flex flex-col items-center gap-2 p-4 md:top-auto md:bottom-0 md:items-end md:p-6"
+      >
         <AnimatePresence initial={false}>
           {toasts.map((toast) => (
             <Toast key={toast.id} toast={toast} onDismiss={dismiss} />
@@ -101,7 +106,7 @@ function Toast({
   }, [toast.id, onDismiss]);
 
   return (
-    <motion.div
+    <m.div
       layout
       role={tone === "error" ? "alert" : "status"}
       initial={{ opacity: 0, scale: 0.9 }}
@@ -118,6 +123,6 @@ function Toast({
           <p className="text-sm text-paper/75">{toast.description}</p>
         )}
       </div>
-    </motion.div>
+    </m.div>
   );
 }

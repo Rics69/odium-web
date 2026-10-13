@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "motion/react";
+import { m, type HTMLMotionProps } from "framer-motion";
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { Doodle } from "@/components/doodles/doodle";
@@ -29,7 +29,7 @@ export function Button({
   const inactive = Boolean(disabled) || loading;
 
   return (
-    <motion.button
+    <m.button
       type="button"
       disabled={inactive}
       aria-busy={loading || undefined}
@@ -40,14 +40,14 @@ export function Button({
       {...props}
     >
       {doodle && (
-        <motion.span
+        <m.span
           aria-hidden
           className="pointer-events-none absolute -inset-x-3.5 -inset-y-3.5 text-ink/70 md:-inset-x-5"
           variants={{ hover: { rotate: [0, -1.5, 1, 0] } }}
           transition={{ duration: 0.45 }}
         >
           <Doodle name="outline" draw="view" className="size-full" />
-        </motion.span>
+        </m.span>
       )}
       {loading && (
         <span aria-hidden className="absolute inset-0 grid place-items-center">
@@ -59,7 +59,7 @@ export function Button({
       >
         {children as React.ReactNode}
       </span>
-    </motion.button>
+    </m.button>
   );
 }
 

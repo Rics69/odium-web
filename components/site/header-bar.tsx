@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValueEvent, useScroll } from "motion/react";
+import { m, useMotionValueEvent, useScroll } from "framer-motion";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,7 +16,8 @@ const HIDE_AFTER_PX = 160;
 export type HeaderUser = { nickname: string; admin: boolean };
 
 // Transparent at the top of the page; once scrolled it gets a paper
-// background, hides while scrolling down and comes back on the way up.
+// background, hides while scrolling down and comes back on the way up, or
+// when the keyboard reaches it.
 export function HeaderBar({ user }: { user: HeaderUser | null }) {
   const pathname = usePathname();
   const { scrollY } = useScroll();
@@ -44,7 +45,8 @@ export function HeaderBar({ user }: { user: HeaderUser | null }) {
       >
         {t("nav.skip")}
       </a>
-      <motion.header
+      <m.header
+        onFocus={() => setHidden(false)}
         animate={{ y: hidden ? "-100%" : "0%" }}
         transition={spring.snappy}
         className={cn(
@@ -88,7 +90,7 @@ export function HeaderBar({ user }: { user: HeaderUser | null }) {
             </ul>
           </nav>
         </div>
-      </motion.header>
+      </m.header>
     </>
   );
 }

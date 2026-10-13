@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 
 /** A button that opens the file picker for JPG, PNG and WebP. */
 export function UploadButton({

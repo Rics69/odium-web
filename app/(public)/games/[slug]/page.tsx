@@ -105,7 +105,8 @@ export default async function GamePage({ params }: PageProps<"/games/[slug]">) {
                 src={game.coverUrl}
                 alt={t("game.coverAlt", { game: game.title })}
                 fill
-                preload
+                loading="eager"
+                fetchPriority="high"
                 sizes="(min-width: 1152px) 1152px, 100vw"
                 className="object-cover"
               />

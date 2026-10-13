@@ -1,6 +1,6 @@
 "use client";
 
-import { useInView } from "motion/react";
+import { useInView } from "framer-motion";
 import {
   useLayoutEffect,
   useRef,
@@ -106,10 +106,19 @@ const SAMPLES = 48;
 // Length of a path as drawn on screen. With non-scaling strokes the browser
 // measures dashes in screen pixels, so the drawing animation needs this
 // length rather than the one in viewBox units.
-function screenLength(path: SVGPathElement) {
-  const matrix = path.getScreenCTM();
-  if (!matrix) return 0;
+function screenLength(path: SVGPathElement, matrix: DOMMatrix) {
   const total = path.getTotalLength();
+  // Scaled the same both ways and not turned: the length simply scales.
+  // Only a stretched shape (an outline around a wide button) is walked
+  // point by point, which costs fifty times more.
+  const scale = Math.hypot(matrix.a, matrix.b);
+  if (
+    Math.abs(matrix.b) < 1e-6 &&
+    Math.abs(matrix.c) < 1e-6 &&
+    Math.abs(Math.abs(matrix.d) - scale) < 1e-6 * scale
+  ) {
+    return Math.ceil(total * scale) + 1;
+  }
   let length = 0;
   let previous: DOMPoint | null = null;
   for (let i = 0; i <= SAMPLES; i += 1) {
@@ -126,6 +135,9 @@ function screenLength(path: SVGPathElement) {
 /**
  * Prepares the paths inside an SVG for the drawing animation in
  * app/globals.css (.doodle): measures each path on screen, again on resize.
+ * A drawing waits until it is within a screen of the viewport: measuring
+ * is not free, and the home page has dozens of drawings. Until measured it
+ * stays hidden, and it draws itself only once in view anyway.
  */
 export function useDoodleDrawing(
   svgRef: RefObject<SVGSVGElement | null>,
@@ -134,16 +146,31 @@ export function useDoodleDrawing(
   useLayoutEffect(() => {
     const svg = svgRef.current;
     if (!enabled || !svg) return;
-    const measure = () => {
+    // Reports the size once right away: that is the first measurement.
+    const resize = new ResizeObserver(() => {
+      const matrix = svg.getScreenCTM();
+      if (!matrix) return;
       svg.querySelectorAll("path").forEach((path) => {
-        path.style.setProperty("--doodle-length", `${screenLength(path)}px`);
+        path.style.setProperty(
+          "--doodle-length",
+          `${screenLength(path, matrix)}px`,
+        );
       });
       svg.dataset.measured = "";
+    });
+    const near = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        near.disconnect();
+        resize.observe(svg);
+      },
+      { rootMargin: "100% 0px" },
+    );
+    near.observe(svg);
+    return () => {
+      near.disconnect();
+      resize.disconnect();
     };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(svg);
-    return () => observer.disconnect();
   }, [svgRef, enabled]);
 }
 

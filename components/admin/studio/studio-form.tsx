@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { ApiRequestError, apiSend } from "@/lib/api-client";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import {
   ABOUT_MAX,
   MISSION_MAX,

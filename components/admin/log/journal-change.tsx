@@ -1,6 +1,6 @@
 import { adminFieldLabel } from "@/lib/admin-actions";
 import { statusLabel as gameStatusLabel } from "@/lib/games";
-import { t, type MessageKey } from "@/lib/i18n";
+import { t, type AdminMessageKey } from "@/lib/i18n/admin";
 import type { GameStatus } from "@/lib/validation/games";
 import { hiddenReasonLabel, statusLabel, typeLabel } from "@/lib/wish-labels";
 
@@ -16,7 +16,7 @@ const durationLabel = {
 /** A stored code in words: off_topic → «не по теме», 7d → «7 дней». */
 function inWords(field: string, value: unknown): string | null {
   if (typeof value !== "string") return null;
-  const lookup = (map: Record<string, MessageKey>) =>
+  const lookup = (map: Record<string, AdminMessageKey>) =>
     value in map ? t(map[value]!) : null;
   switch (field) {
     case "status":
@@ -103,7 +103,13 @@ export function JournalChange({
   ].filter((key) => !before || !after || !same(before[key], after[key]));
   if (keys.length === 0) return null;
   return (
-    <div className="overflow-x-auto">
+    // Scrolls sideways on a phone: focusable, so the keyboard can scroll it.
+    <div
+      tabIndex={0}
+      role="group"
+      aria-label={t("admin.log.changes")}
+      className="overflow-x-auto"
+    >
       <table className="w-full min-w-md text-left text-sm">
         <thead className="text-ink-2">
           <tr>

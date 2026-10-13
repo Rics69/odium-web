@@ -25,7 +25,9 @@ export function EmptyState({
           className="absolute -top-1 right-0 size-8 text-accent"
         />
       </div>
-      <h3 className="font-display text-h3">{title}</h3>
+      {/* A message, not a section: a heading here would break the outline
+          of whatever page it sits on. */}
+      <p className="font-display text-h3">{title}</p>
       {text && <p className="max-w-sm text-ink-2">{text}</p>}
       {action}
     </div>

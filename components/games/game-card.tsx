@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotionConfig, useSpring } from "motion/react";
+import { m, useReducedMotionConfig, useSpring } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { ViewTransition, type PointerEvent } from "react";
@@ -53,7 +53,7 @@ export function GameCard({ game }: { game: GameCardData }) {
   }
 
   return (
-    <motion.div
+    <m.div
       className="h-full"
       style={{ rotateX, rotateY, transformPerspective: 900 }}
       whileTap={{ scale: 0.98 }}
@@ -124,6 +124,6 @@ export function GameCard({ game }: { game: GameCardData }) {
           </div>
         </div>
       </Link>
-    </motion.div>
+    </m.div>
   );
 }

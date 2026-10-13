@@ -8,7 +8,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input, Select, Textarea } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { ApiRequestError, apiGet, apiSend } from "@/lib/api-client";
-import { formatRelativeTime, t, tp } from "@/lib/i18n";
+import { formatRelativeTime } from "@/lib/i18n";
+import { t, tp } from "@/lib/i18n/admin";
 import type { AdminWish, AdminWishesPage } from "@/lib/server/admin-wishes";
 import {
   moderatorReasons,

@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  motion,
+  m,
   useMotionValue,
   useReducedMotionConfig,
   useSpring,
   useTransform,
   type MotionValue,
-} from "motion/react";
+} from "framer-motion";
 import Image from "next/image";
 import type { PointerEvent } from "react";
 import { Doodle } from "@/components/doodles/doodle";
@@ -123,12 +123,12 @@ function FloatingCover({
   const y = useTransform(pointerY, (value) => value * slot.depth * 28);
 
   return (
-    <motion.div
+    <m.div
       aria-hidden
       className="absolute z-10 w-[26vw] max-w-96 md:w-[19vw]"
       style={{ left: slot.left, top: slot.top, x, y }}
     >
-      <motion.div
+      <m.div
         className="overflow-hidden rounded-md bg-line shadow-md"
         initial={{ opacity: 0, y: -50, rotate: slot.rotate - 12 }}
         animate={{ opacity: 1, y: 0, rotate: slot.rotate }}
@@ -144,7 +144,7 @@ function FloatingCover({
           loading="eager"
           className="aspect-[16/10] h-auto w-full object-cover"
         />
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 }

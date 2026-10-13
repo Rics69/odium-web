@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import { ApiError } from "./http";
 import { storage } from "./storage";
 

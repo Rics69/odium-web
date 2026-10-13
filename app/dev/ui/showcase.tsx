@@ -1,6 +1,6 @@
 "use client";
 
-import { MotionConfig } from "motion/react";
+import { MotionConfig } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { Doodle, type DoodleName } from "@/components/doodles/doodle";
 import { Reveal } from "@/components/motion/reveal";

@@ -2,6 +2,7 @@ import { globSync, readFileSync } from "node:fs";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { ru } from "@/lib/i18n/ru";
+import { ruAdmin } from "@/lib/i18n/ru-admin";
 
 // Code that players see. The /dev/ui showcase and tests may use any text.
 const CODE = [
@@ -14,6 +15,7 @@ const NOT_CODE = [
   "**/*.test.tsx",
   "app/dev/**",
   "lib/i18n/ru.ts",
+  "lib/i18n/ru-admin.ts",
   // Data, not interface text: nicknames nobody may take.
   "lib/validation/reserved-nicknames.ts",
 ];
@@ -58,7 +60,7 @@ function dictionaryKeys(node: object, prefix = ""): string[] {
 const allLiterals = globSync(CODE, { exclude: NOT_CODE }).flatMap(literals);
 
 describe("interface texts", () => {
-  it("live in lib/i18n/ru.ts, not in code", () => {
+  it("live in the dictionaries of lib/i18n, not in code", () => {
     const russian = allLiterals
       .filter((literal) => /[А-Яа-яЁё]/.test(literal.text))
       .map(
@@ -69,7 +71,9 @@ describe("interface texts", () => {
 
   it("are all used somewhere", () => {
     const used = new Set(allLiterals.map((literal) => literal.text));
-    const unused = dictionaryKeys(ru).filter((key) => !used.has(key));
+    const unused = dictionaryKeys({ ...ru, admin: ruAdmin }).filter(
+      (key) => !used.has(key),
+    );
     expect(unused).toEqual([]);
   });
 });

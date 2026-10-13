@@ -2,7 +2,7 @@ import "server-only";
 import { unstable_rethrow } from "next/navigation";
 import type { NextRequest } from "next/server";
 import type { z } from "zod";
-import { t, tp } from "@/lib/i18n";
+import { t, tp } from "@/lib/i18n/admin";
 import { clientIp } from "./client-ip";
 import { hitRateLimit } from "./rate-limit";
 import type { CurrentUser } from "./session";

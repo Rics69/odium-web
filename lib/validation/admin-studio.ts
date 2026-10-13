@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 
 // «О студии» and the two lists of the admin (spec, sections 6 and 7).
 

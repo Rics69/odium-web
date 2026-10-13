@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/admin";
 import type { AdminUser } from "@/lib/server/admin-users";
 
 /** Admin, banned, unconfirmed: what sets a player apart, at a glance. */
