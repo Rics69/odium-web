@@ -70,3 +70,20 @@ test("the health check reaches the database", async ({ request }) => {
   expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({ status: "ok" });
 });
+
+test("the penguin from the logo stands by the word and leaves the narrowest phones", async ({
+  page,
+}) => {
+  const logo = page.getByRole("link", { name: "Odium — на главную" });
+  const fits = () =>
+    page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
+
+  await page.setViewportSize({ width: 360, height: 700 });
+  await page.goto("/");
+  await expect(logo.locator("[data-penguin]")).toBeVisible();
+  expect(await fits()).toBe(true);
+
+  await page.setViewportSize({ width: 320, height: 700 });
+  await expect(logo.locator("[data-penguin]")).toBeHidden();
+  expect(await fits()).toBe(true);
+});

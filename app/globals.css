@@ -204,6 +204,90 @@
   }
 }
 
+/*
+ * The pixel penguin by the logo (components/site/penguin.tsx). Every move is
+ * a jump of whole pixels (steps), like an old game; inside the SVG 1px is one
+ * pixel of the drawing. Hops in with the letters, then loops forever.
+ */
+.penguin {
+  animation: letter-in 600ms var(--ease-bounce) both;
+}
+
+.penguin-body {
+  animation: penguin-bob 1.2s steps(1, end) infinite;
+}
+
+@keyframes penguin-bob {
+  50% {
+    translate: 0 1px;
+  }
+}
+
+/* A sip takes the top row of the drink, then the next; then it refills. */
+.penguin-drink-1,
+.penguin-drink-2,
+.penguin-drink-3 {
+  animation: 9s steps(1, end) infinite;
+}
+
+.penguin-drink-1 {
+  animation-name: penguin-sip-1;
+}
+
+.penguin-drink-2 {
+  animation-name: penguin-sip-2;
+}
+
+.penguin-drink-3 {
+  animation-name: penguin-sip-3;
+}
+
+@keyframes penguin-sip-1 {
+  0% {
+    opacity: 1;
+  }
+  25%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes penguin-sip-2 {
+  0% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes penguin-sip-3 {
+  0% {
+    opacity: 1;
+  }
+  75%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The curl on his head swings a pixel; on hover it wiggles. */
+.penguin-curl {
+  animation: penguin-curl 2.4s steps(1, end) infinite;
+}
+
+.group:hover .penguin-curl,
+.group:focus-visible .penguin-curl {
+  animation-duration: 0.3s;
+}
+
+@keyframes penguin-curl {
+  50% {
+    translate: 1px 0;
+  }
+}
+
 /* Markdown blocks (components/ui/markdown.tsx). */
 .markdown > * + * {
   margin-top: 1em;

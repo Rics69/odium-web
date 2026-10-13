@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRef, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
+import { Penguin } from "./penguin";
 
 const LETTERS = ["O", "D", "I", "U", "M"];
 const CLICKS_FOR_SURPRISE = 5;
@@ -12,9 +13,10 @@ const CLICK_WINDOW_MS = 2000;
 
 const between = (min: number, max: number) => min + Math.random() * (max - min);
 
-// ODIUM in the display font. The letters drop in on load (plain CSS, so the
-// logo never waits for JavaScript), wave on hover, and five quick clicks
-// scatter them across the header before they spring back. Hover and clicks
+// The pixel penguin and ODIUM in the display font. The letters drop in on
+// load (plain CSS, so the logo never waits for JavaScript), wave on hover
+// while the penguin hops and wiggles his curl, and five quick clicks scatter them across the
+// header before they spring back, the penguin jumping high. Hover and clicks
 // use the browser's own animations: the logo is on every page, and Motion's
 // animation engine would weigh more than the logo needs.
 export function Logo({ className }: { className?: string }) {
@@ -25,8 +27,23 @@ export function Logo({ className }: { className?: string }) {
   const letters = () =>
     scope.current?.querySelectorAll<HTMLElement>("[data-letter]") ?? [];
 
+  // Up and down in whole pixels of the drawing, like an old game.
+  function hop(height: number, duration: number) {
+    scope.current
+      ?.querySelector("[data-penguin]")
+      ?.animate(
+        [
+          { transform: "translateY(0)" },
+          { transform: `translateY(-${height}px)` },
+          { transform: "translateY(0)" },
+        ],
+        { duration, easing: `steps(${height / 2})` },
+      );
+  }
+
   function wave() {
     if (reduceMotion) return;
+    hop(4, 300);
     letters().forEach((letter, index) => {
       letter.animate(
         [
@@ -40,6 +57,7 @@ export function Logo({ className }: { className?: string }) {
   }
 
   function scatter() {
+    hop(16, 900);
     letters().forEach((letter) => {
       const away = `translate(${between(-90, 90)}px, ${between(-40, 70)}px) rotate(${between(-200, 200)}deg)`;
       letter.animate(
@@ -77,10 +95,12 @@ export function Logo({ className }: { className?: string }) {
       onMouseEnter={wave}
       onClick={countClick}
       className={cn(
-        "inline-flex min-h-11 items-center font-display text-h4 leading-none select-none",
+        "group inline-flex min-h-11 items-center font-display text-h4 leading-none select-none",
         className,
       )}
     >
+      {/* The narrowest phones (under 360 px) fit the word and the menu only. */}
+      <Penguin className="mr-2 max-[359px]:hidden" />
       {LETTERS.map((letter, index) => (
         <span
           key={letter}

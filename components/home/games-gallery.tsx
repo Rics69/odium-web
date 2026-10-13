@@ -119,13 +119,13 @@ function GalleryItem({
               </div>
             </ViewTransition>
             <div className="mt-6 flex items-start justify-between gap-6">
-              <div className="flex flex-col gap-2">
+              <div className="flex min-w-0 flex-col gap-2">
                 {game.genre && (
                   <BracketLabel className="text-ink-2">
                     {game.genre}
                   </BracketLabel>
                 )}
-                <h3 className="font-display text-h3 transition-colors group-hover:text-accent">
+                <h3 className="font-display text-h3 break-words transition-colors group-hover:text-accent">
                   {game.title}
                 </h3>
                 {game.tagline && <p className="text-ink-2">{game.tagline}</p>}
